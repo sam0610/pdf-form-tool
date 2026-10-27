@@ -435,7 +435,7 @@ body.fldlock #m-select { color: inherit; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3M5.5 8h5M5.5 10.5h5"/></svg></span>
-      <b>PDF 填表轉換</b><span class="ver" id="ver" title="軟件版本">v3.15.5</span>
+      <b>PDF 填表轉換</b><span class="ver" id="ver" title="軟件版本">v3.16.0</span>
     </div>
     <div class="docname" id="docname"><b id="dn-name">未開啟文件</b><small id="dn-meta"></small></div>
     <span class="sp"></span>
@@ -452,7 +452,7 @@ body.fldlock #m-select { color: inherit; }
     <span style="flex:1"></span><button class="btn ib flat" id="undo" disabled title="復原(Ctrl/Cmd+Z)" aria-label="復原"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button><button class="btn ib flat" id="redo" disabled title="重做(Ctrl/Cmd+Shift+Z)" aria-label="重做"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
     </div>
     <div class="tpanel gut" id="pn-file" role="tabpanel" aria-labelledby="tab-file" hidden>
-      <div class="grp"><div class="ctl"><button class="btn ib" id="open" data-lb="開啟" title="開啟 PDF" aria-label="開啟 PDF"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V6a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 18l3-8h16l-3 8z"/></svg></button><button class="btn ib primary" id="export" data-lb="下載" disabled title="下載 PDF" aria-label="下載 PDF"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></button><button class="btn ib" id="close-file" data-lb="關閉" disabled title="關閉檔案" aria-label="關閉檔案"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M10 11l5 5M15 11l-5 5"/></svg></button></div></div>
+      <div class="grp"><div class="ctl"><button class="btn ib" id="open" data-lb="開啟" title="開啟 PDF" aria-label="開啟 PDF"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V6a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 18l3-8h16l-3 8z"/></svg></button><button class="btn ib" id="save" data-lb="儲存" disabled title="儲存:直接覆蓋原檔(Ctrl+S)。Chrome / Edge 支援;其他瀏覽器會改為下載" aria-label="儲存"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></button><button class="btn ib primary" id="export" data-lb="下載" disabled title="下載 PDF" aria-label="下載 PDF"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></button><button class="btn ib" id="close-file" data-lb="關閉" disabled title="關閉檔案" aria-label="關閉檔案"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M10 11l5 5M15 11l-5 5"/></svg></button></div></div>
     </div>
     <div class="tpanel gut" id="pn-annot" role="tabpanel" aria-labelledby="tab-annot" hidden>
       <div class="grp"><div class="ctl"><div class="seg" role="group" aria-label="文字標記"><button type="button" id="mu-hl" data-lb="螢光筆" class="ibs" title="螢光筆:喺文字上面拖過就標記(Esc 取消)" aria-label="螢光筆:喺文字上面拖過就標記(Esc 取消)"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="18" height="17" rx="2.5" fill="#ffe600" stroke="none"/><path d="M7.5 7.5h9M12 7.5v9"/></svg></button><button type="button" id="mu-ul" data-lb="底線" class="ibs" title="劃底線:喺文字上面拖過就加底線(Esc 取消)" aria-label="劃底線:喺文字上面拖過就加底線(Esc 取消)"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5h9M12 4.5v11.5"/><path d="M5 20h14" stroke="#f08a00" stroke-width="2.2"/></svg></button><button type="button" id="mu-st" data-lb="刪除線" class="ibs" title="刪除線:喺文字上面拖過就加刪除線(Esc 取消)" aria-label="刪除線:喺文字上面拖過就加刪除線(Esc 取消)"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5h9M12 4.5v15"/><path d="M4 12h16" stroke="#f08a00" stroke-width="2.2"/></svg></button></div></div></div>
@@ -734,7 +734,7 @@ function toast(msg, ms = 3200) {
   clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), ms);
 }
 const tick = () => new Promise((r) => setTimeout(r, 0));
-function setBusy(on, text) { $('#busy').classList.toggle('on', on); if (text) $('#busyt').textContent = text; S.busy = on; $('#export').disabled = on || !S.pages.length; $('#close-file').disabled = on || !S.pages.length; }
+function setBusy(on, text) { $('#busy').classList.toggle('on', on); if (text) $('#busyt').textContent = text; S.busy = on; $('#export').disabled = $('#save').disabled = on || !S.pages.length; $('#close-file').disabled = on || !S.pages.length; }
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
 /* ------------------------------------------------------------------ 影像運算(純 JS,取代 OpenCV) */
@@ -1091,7 +1091,7 @@ function updateStatus() {
     nt.hidden = true; nt.textContent = ''; void none; }
   $('#dn-name').textContent = S.pages.length ? S.name : '未開啟文件';
   $('#dn-meta').textContent = S.pages.length ? S.pages.length + ' 頁' + (S.sample ? ' · 範例' : '') : '';
-  $('#export').disabled = S.busy || !S.pages.length; $('#close-file').disabled = S.busy || !S.pages.length;
+  $('#export').disabled = $('#save').disabled = S.busy || !S.pages.length; $('#close-file').disabled = S.busy || !S.pages.length;
   if (S.hooks.after) S.hooks.after();
 }
 function select(f) {
@@ -1263,7 +1263,7 @@ async function buildPdf() {
 }
 function doCloseFile() {
   if (S.fill) setFill(false);
-  S.pages = []; S.sel = null; S.bytes = null; S.name = ''; S.sample = false; $('#pages').textContent = '';
+  S.fh = null; S.pages = []; S.sel = null; S.bytes = null; S.name = ''; S.sample = false; $('#pages').textContent = '';
   if (S.hooks.reset) S.hooks.reset();
   renderList(); renderEditor(); updateStatus(); toast('已關閉檔案');
   const nt = $('#notice'); nt.hidden = false; nt.textContent = '未開啟文件。按「檔案」分頁嘅「開啟 PDF」,或者將 PDF 拖入視窗。';
@@ -1285,6 +1285,27 @@ async function exportPdf() {
     if (e && e.code === 'declined') toast('已取消儲存'); else { console.error(e); toast('輸出失敗:' + (e && e.message ? e.message : e)); }
   } finally { setBusy(false); }
 }
+
+async function savePdf() {
+  if (!S.pages.length || S.busy) return;
+  if (!S.fh && !window.showSaveFilePicker) { exportPdf(); return; }   // 唔支援 → 下載
+  const name = (S.name || 'form.pdf').replace(/(\.pdf)?$/i, '.pdf');
+  setBusy(true, '儲存中…'); await tick();
+  try {
+    const bytes = await buildPdf();
+    let h = S.fh;
+    if (h && h.requestPermission && (await h.requestPermission({ mode: 'readwrite' })) !== 'granted') h = null;
+    if (!h) { h = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }] }); S.fh = h; }
+    const w = await h.createWritable(); await w.write(bytes); await w.close();
+    S.name = h.name || S.name; toast('已儲存 ' + (h.name || name));
+  } catch (e) {
+    if (e && e.name === 'AbortError') toast('已取消儲存');
+    else if (e && (e.name === 'SecurityError' || e.name === 'NotAllowedError')) { S.fh = null; toast('呢個環境唔可以直接覆蓋檔案,改為下載'); setBusy(false); exportPdf(); return; }
+    else { console.error(e); toast('儲存失敗:' + (e && e.message ? e.message : e)); }
+  } finally { setBusy(false); }
+}
+$('#save').addEventListener('click', savePdf);
+window.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); if (!$('#save').disabled) savePdf(); } });
 
 /* ------------------------------------------------------------------ 範例表格 */
 async function makeSample() {
@@ -1319,14 +1340,22 @@ async function makeSample() {
 }
 
 /* ------------------------------------------------------------------ 事件 */
-async function openFile(file) {
+async function openFile(file, handle) {
   if (!file) return;
+  const _fh = handle || null;
   if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) { toast('請揀 PDF 檔案'); return; }
   const buf = new Uint8Array(await file.arrayBuffer());
-  if (S.hooks.extractEdit) { const ed = await S.hooks.extractEdit(buf); if (ed) { await loadPdf(ed.orig, file.name, false); if (S.hooks.restoreMarks) await S.hooks.restoreMarks(ed); toast('已還原上次嘅編輯內容:文字、簽名等都可以再修改', 4200); return; } }
-  await loadPdf(buf, file.name, false);
+  if (S.hooks.extractEdit) { const ed = await S.hooks.extractEdit(buf); if (ed) { await loadPdf(ed.orig, file.name, false); if (S.hooks.restoreMarks) await S.hooks.restoreMarks(ed); toast('已還原上次嘅編輯內容:文字、簽名等都可以再修改', 4200); S.fh = _fh; return; } }
+  await loadPdf(buf, file.name, false); S.fh = _fh;
 }
-$('#open').addEventListener('click', () => $('#file').click());
+async function pickOpen() {   // Chrome / Edge:用檔案控制代碼開,之後可直接覆蓋原檔
+  if (window.showOpenFilePicker) {
+    try { const [h] = await window.showOpenFilePicker({ types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }] }); const f = await h.getFile(); await openFile(f, h); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  $('#file').click();
+}
+$('#open').addEventListener('click', pickOpen);
 $('#file').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; openFile(f); });
 $('#export').addEventListener('click', exportPdf);
 $('#redetect').addEventListener('click', () => detectNow('all'));
@@ -1401,7 +1430,7 @@ let dragDepth = 0;
 window.addEventListener('dragenter', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { dragDepth++; $('#drop').classList.add('on'); } });
 window.addEventListener('dragleave', () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) $('#drop').classList.remove('on'); });
 window.addEventListener('dragover', (e) => e.preventDefault());
-window.addEventListener('drop', (e) => { e.preventDefault(); dragDepth = 0; $('#drop').classList.remove('on'); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) openFile(f); });
+window.addEventListener('drop', (e) => { e.preventDefault(); dragDepth = 0; $('#drop').classList.remove('on'); const it = e.dataTransfer.items && e.dataTransfer.items[0], f = e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return; if (it && it.getAsFileSystemHandle) { it.getAsFileSystemHandle().then((h) => openFile(f, h && h.kind === 'file' ? h : null), () => openFile(f)); } else openFile(f); });
 
 async function saveFile(filename, data) {
   const dl = await (window.claude && window.claude.use ? window.claude.use('downloads') : null);
@@ -1996,7 +2025,7 @@ function arrOp(op) {
 for (const b of document.querySelectorAll('#mk-arr [data-arr]')) b.addEventListener('click', () => arrOp(b.dataset.arr));
 $('#arr-del').addEventListener('click', delMulti);
 function delMark() { const m = S.selMark; if (!m) return; S.marks.splice(S.marks.indexOf(m), 1); selectMark(null); updateExportState(); record(); }
-function updateExportState() { $('#export').disabled = S.busy || !S.pages.length; }
+function updateExportState() { $('#export').disabled = $('#save').disabled = S.busy || !S.pages.length; }
 document.addEventListener('keydown', (e) => {
   const tag = (e.target && e.target.tagName) || ''; if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || !M.back.hidden) return;
   if ((e.key === 'Delete' || e.key === 'Backspace') && S.multi.length > 1) { e.preventDefault(); delMulti(); }
