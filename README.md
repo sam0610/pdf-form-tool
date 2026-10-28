@@ -2,7 +2,7 @@
 
 PDF 填表、加文字/圖案/簽名/圖章、掃描檔轉可填表單、分割/壓縮/批量填寫。全部喺瀏覽器本機運行,PDF 唔會上載。
 
-目前版本 v3.16.0
+目前版本 v3.16.33
 
 ## 部署(GitHub Pages)
 1. Repo → Settings → Pages → Source 揀 `Deploy from a branch`,Branch 揀 `main` / `(root)`,Save。

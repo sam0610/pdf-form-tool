@@ -294,6 +294,7 @@ body.mkmode .mk.mu, .mk.mu { pointer-events: none; outline: none !important; cur
 .fld.fill.c.on { background: color-mix(in srgb, var(--fld-check) 28%, transparent); }
 .fillin { position: absolute; inset: 0; width: 100%; height: 100%; box-sizing: border-box; border: 0; margin: 0; padding: 0 3px; background: transparent; color: #00008c; outline: none; font-family: inherit; resize: none; }
 .fillin:focus { background: rgba(255,255,255,.75); box-shadow: inset 0 0 0 2px var(--accent); }
+.ibsel.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
 .btn.on#mc-fill { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .pv.val { opacity: 1; color: #00008c; }
 .pv.tick { justify-content: center; font-weight: 700; color: var(--fld-check); }
@@ -305,7 +306,7 @@ body.fillmode .ov { pointer-events: auto !important; }
 .ctxbar .cg:last-child { border-right: 0; padding-right: 0; }
 .ctxbar select, .ctxbar input[type=text], .ctxbar .btn, .ctxbar .seg button, .ctxbar .tgl, .ctxbar .stepper > button, .ctxbar .stepper input { height: 32px; box-sizing: border-box; }
 .ctxbar input[type=text], .ctxbar .stepper input { border: 1px solid var(--line); border-radius: 5px; background: var(--panel); padding: 0 8px; }
-.ctxbar .stepper input { width: 64px; flex: none; }
+.ctxbar .stepper input { width: 46px; flex: none; font-size: 13px; padding: 0 2px; }
 .ctxbar .seg button { min-width: 34px; padding: 0 8px; }
 .ctxbar textarea { width: 150px; height: 32px; resize: none; padding: 5px 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); font: inherit; line-height: 1.2; }
 .tgl { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 0 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); cursor: pointer; font-size: 13px; position: relative; user-select: none; }
@@ -386,11 +387,15 @@ body.picking, body.picking * { cursor: crosshair !important; }
 .chl { position: absolute; inset: 0; pointer-events: none; }
 .chl i { position: absolute; box-sizing: border-box; background: rgba(26,79,208,.07); border: 1px solid rgba(26,79,208,.3); border-radius: 2px; }
 .chl i.k { border-style: dashed; }
+.chl i u.x { position: absolute; right: -10px; top: -38px; width: 20px; height: 20px; border-radius: 50%; background: #d11a2a; color: #fff; font: 700 15px/20px system-ui, sans-serif; text-align: center; text-decoration: none; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.chl i.hov { background: rgba(26,79,208,.16); border-color: #1a4fd0; border-width: 2px; }
+body.filltool.mkmode .mv { cursor: crosshair; }
 .chl i.act { background: rgba(26,79,208,.15); border-color: #1a4fd0; border-width: 2px; }
 .chl i b { position: absolute; width: 9px; height: 9px; background: #fff; border: 2px solid #1a4fd0; border-radius: 50%; box-sizing: border-box; }
 .chl i b.n { left: calc(50% - 4.5px); top: -6px; } .chl i b.s { left: calc(50% - 4.5px); bottom: -6px; } .chl i b.w { left: -6px; top: calc(50% - 4.5px); } .chl i b.e { right: -6px; top: calc(50% - 4.5px); }
 .chl i b.nw { left: -6px; top: -6px; } .chl i b.ne { right: -6px; top: -6px; } .chl i b.sw { left: -6px; bottom: -6px; } .chl i b.se { right: -6px; bottom: -6px; }
 body.mkmode .mv { cursor: default; }
+body.handtool.mkmode .mk { outline: none; }
 body.handtool.mkmode .mv { cursor: grab; }
 body.handtool.mkmode .mv.panning { cursor: grabbing; }
 .btn.ib.flat { border-color: transparent; background: transparent; align-self: center; }
@@ -416,6 +421,12 @@ body.fldlock #m-select { color: inherit; }
 .ctxrz { grid-column: 3; grid-row: 1; justify-self: start; width: 8px; margin-left: -4px; cursor: col-resize; z-index: 6; touch-action: none; }
 .ctxrz:hover, .ctxrz.on { background: color-mix(in srgb, var(--accent) 35%, transparent); }
 .work.ctxoff { grid-template-columns: var(--rail) minmax(0, 1fr) 0px; } .work.ctxoff > .ctxbar, .work.ctxoff > .ctxrz { display: none; }
+.railrz { grid-column: 1; grid-row: 1; justify-self: end; width: 8px; margin-right: -4px; cursor: col-resize; z-index: 6; touch-action: none; }
+.railrz:hover, .railrz.on { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+.work.railoff { --rail: 0px; } .work.railoff > .rail, .work.railoff > .railrz { display: none; }
+.railopen { display: none; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; margin: 10px; z-index: 7; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); cursor: pointer; place-items: center; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+.work.railoff .railopen { display: grid; }
+@media (max-width: 900px) { .railrz, .railopen { display: none !important; } }
 .ctxopen { display: none; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; margin: 10px; z-index: 7; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); cursor: pointer; place-items: center; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
 .work.ctxoff .ctxopen { display: grid; }
 @media (max-width: 900px) { .ctxrz, .ctxopen { display: none !important; } }
@@ -429,13 +440,14 @@ body.fldlock #m-select { color: inherit; }
 .work > .ctxbar textarea { width: 100%; }
 .work > .ctxbar .cg[data-t]::before { content: attr(data-t); flex: 0 0 100%; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
 @media (max-width: 900px) { .work > .ctxbar { grid-column: auto; border-left: 0; border-top: 1px solid var(--line); } }
+
 </style>
 
 <div id="app">
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3M5.5 8h5M5.5 10.5h5"/></svg></span>
-      <b>PDF 填表轉換</b><span class="ver" id="ver" title="軟件版本">v3.16.0</span>
+      <b>PDF 填表轉換</b><span class="ver" id="ver" title="軟件版本">v3.16.33</span>
     </div>
     <div class="docname" id="docname"><b id="dn-name">未開啟文件</b><small id="dn-meta"></small></div>
     <span class="sp"></span>
@@ -452,24 +464,26 @@ body.fldlock #m-select { color: inherit; }
     <span style="flex:1"></span><button class="btn ib flat" id="undo" disabled title="復原(Ctrl/Cmd+Z)" aria-label="復原"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button><button class="btn ib flat" id="redo" disabled title="重做(Ctrl/Cmd+Shift+Z)" aria-label="重做"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
     </div>
     <div class="tpanel gut" id="pn-file" role="tabpanel" aria-labelledby="tab-file" hidden>
-      <div class="grp"><div class="ctl"><button class="btn ib" id="open" data-lb="開啟" title="開啟 PDF" aria-label="開啟 PDF"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V6a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 18l3-8h16l-3 8z"/></svg></button><button class="btn ib" id="save" data-lb="儲存" disabled title="儲存:直接覆蓋原檔(Ctrl+S)。Chrome / Edge 支援;其他瀏覽器會改為下載" aria-label="儲存"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></button><button class="btn ib primary" id="export" data-lb="下載" disabled title="下載 PDF" aria-label="下載 PDF"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></button><button class="btn ib" id="close-file" data-lb="關閉" disabled title="關閉檔案" aria-label="關閉檔案"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M10 11l5 5M15 11l-5 5"/></svg></button></div></div>
+      <div class="grp"><div class="ctl"><button class="btn ib" id="open" data-lb="開啟" title="開啟 PDF" aria-label="開啟 PDF"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V6a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 18l3-8h16l-3 8z"/></svg></button><button class="btn ib" id="save" data-lb="儲存" disabled title="儲存:直接覆蓋原檔(Ctrl+S)。Chrome / Edge 支援;其他瀏覽器會改為下載" aria-label="儲存"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></button><button class="btn ib primary" id="export" data-lb="另存" disabled title="另存新檔:揀位置同檔名(Chrome / Edge;其他瀏覽器改為下載)" aria-label="另存新檔"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v3M6 3v18h6"/><path d="M13 20l.7-3L20 10.7l2.3 2.3L16 19.3z"/></svg></button><button class="btn ib" id="print" data-lb="列印" disabled title="列印(Ctrl+P):列印包含所有編輯嘅 PDF" aria-label="列印"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5"/><path d="M7 17H5a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg></button><button class="btn ib" id="close-file" data-lb="關閉" disabled title="關閉檔案" aria-label="關閉檔案"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M10 11l5 5M15 11l-5 5"/></svg></button></div></div>
     </div>
     <div class="tpanel gut" id="pn-annot" role="tabpanel" aria-labelledby="tab-annot" hidden>
+      <div class="grp"><div class="ctl"><div class="seg" role="group" aria-label="游標工具"><button id="an-type" data-lb="選擇" class="ibs" title="選擇:撳物件選取、移動、拉大細;喺空白位置拖拉可框選多個物件" aria-label="選擇物件"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l13 8-6 1.8L9.5 19z"/><path d="M12.5 13l4 5"/></svg></button><button id="an-hand" data-lb="拖動" class="on ibs" title="拖動頁面;偵測格同物件虛線會隱藏,撳頁面唔會輸入" aria-label="拖動頁面"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11V4a1.5 1.5 0 0 1 3 0v7.5M14 11.5V6a1.5 1.5 0 0 1 3 0v8c0 4-2 6-5.5 6S7 18 6 15.5l-1.2-2.7a1.4 1.4 0 0 1 2.4-1.4L8 13"/></svg></button></div></div></div>
       <div class="grp"><div class="ctl"><div class="seg" role="group" aria-label="文字標記"><button type="button" id="mu-hl" data-lb="螢光筆" class="ibs" title="螢光筆:喺文字上面拖過就標記(Esc 取消)" aria-label="螢光筆:喺文字上面拖過就標記(Esc 取消)"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="18" height="17" rx="2.5" fill="#ffe600" stroke="none"/><path d="M7.5 7.5h9M12 7.5v9"/></svg></button><button type="button" id="mu-ul" data-lb="底線" class="ibs" title="劃底線:喺文字上面拖過就加底線(Esc 取消)" aria-label="劃底線:喺文字上面拖過就加底線(Esc 取消)"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5h9M12 4.5v11.5"/><path d="M5 20h14" stroke="#f08a00" stroke-width="2.2"/></svg></button><button type="button" id="mu-st" data-lb="刪除線" class="ibs" title="刪除線:喺文字上面拖過就加刪除線(Esc 取消)" aria-label="刪除線:喺文字上面拖過就加刪除線(Esc 取消)"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5h9M12 4.5v15"/><path d="M4 12h16" stroke="#f08a00" stroke-width="2.2"/></svg></button></div></div></div>
       <div class="grp"><div class="ctl">
-        <button class="btn ib" id="an-field" data-lb="文字欄" title="加入文字欄:喺頁面拖出一條底線,即可輸入文字(唔會偵測格仔,Esc 取消)" aria-label="加入文字欄"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6h10M8.5 6v12"/><path d="M17.5 5v14M15.2 5h4.6M15.2 19h4.6" stroke="#e0541b" stroke-width="2"/></svg></button>
+        <button class="btn ib" id="an-area" data-lb="區域螢光" title="區域螢光筆:拖出一個範圍,塗上半透明螢光色(文字仍然睇到)。可喺右邊改顏色(Esc 取消)" aria-label="區域螢光筆"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="#ffe600" fill-opacity=".75" stroke="none"/><path d="M7 10h6M7 14h9"/></svg></button>
+        <button class="btn ib" id="an-field" data-lb="文字欄" title="加入文字欄:喺頁面拖出範圍,即可輸入文字,字體跟拖出嚟嘅高度(冇框、冇底線;唔會偵測格仔,Esc 取消)" aria-label="加入文字欄"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6h10M8.5 6v12"/><path d="M17.5 5v14M15.2 5h4.6M15.2 19h4.6" stroke="#e0541b" stroke-width="2"/></svg></button>
         <button class="btn ib" id="an-box" data-lb="文字方塊" title="加入文字格:拖出一個文字框,可自由調整大細,預設多行、大細唔隨內容改變(Esc 取消)" aria-label="加入文字格"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M6.5 14l2-5.5 2 5.5M7.3 12.2h2.4M13 9h5M13 11.8h5M6.5 16.8h11"/></g></svg></button>
         <select id="mc-shape" data-lb="圖案" aria-label="圖案" hidden><option value="">加入圖案…</option><option value="rect">長方形</option><option value="tri">三角形</option><option value="ellipse">圓形</option><option value="arrow">實心箭咀</option><option value="rrect">圓角長方形</option><option value="line">直線</option><option value="larrow">線形箭咀</option><option value="check">剔號</option><option value="xmark">交叉</option></select>
-      </div><div class="gl">文字與圖案</div></div>
+        <select id="mc-stamp" data-lb="圖章" aria-label="圖章" hidden></select>
+      </div><div class="gl">文字、圖案與圖章</div></div>
     </div>
       <div class="tpanel gut" id="pn-content" role="tabpanel" aria-labelledby="tab-content" hidden>
-      <div class="grp"><div class="ctl"><div class="seg" role="group" aria-label="游標工具"><button id="tool-type" data-lb="選擇" class="on ibs" title="選擇物件:撳偵測到嘅格輸入文字,可改格式或移動(撳空白位置唔會加文字格)" aria-label="選擇物件"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l13 8-6 1.8L9.5 19z"/><path d="M12.5 13l4 5"/></svg></button><button id="tool-hand" data-lb="拖動" class="ibs" title="拖動頁面;只可以喺現有嘅格輸入文字,唔會加入新文字格" aria-label="拖動頁面"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11V4a1.5 1.5 0 0 1 3 0v7.5M14 11.5V6a1.5 1.5 0 0 1 3 0v8c0 4-2 6-5.5 6S7 18 6 15.5l-1.2-2.7a1.4 1.4 0 0 1 2.4-1.4L8 13"/></svg></button></div></div></div>
+      <div class="grp"><div class="ctl"><div class="seg" role="group" aria-label="游標工具"><button id="tool-hand" data-lb="拖動" class="ibs" title="拖動頁面;偵測格同物件虛線會隱藏,撳頁面唔會輸入" aria-label="拖動頁面"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11V4a1.5 1.5 0 0 1 3 0v7.5M14 11.5V6a1.5 1.5 0 0 1 3 0v8c0 4-2 6-5.5 6S7 18 6 15.5l-1.2-2.7a1.4 1.4 0 0 1 2.4-1.4L8 13"/></svg></button><button id="tool-fill" data-lb="填寫" class="ibs" title="填寫:行近可能係輸入格嘅位置會自動顯示輸入格,撳一下就輸入(剔選框就剔);附近搵唔到輸入格時游標變十字,拖出一個框就加入該大細嘅文字欄;撳空白位置會取消選取" aria-label="填寫"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6M9 20h6M12 4v16"/></svg></button></div></div></div>
       <div class="grp"><div class="ctl">
         
         <button class="btn ib" id="mc-text" data-lb="加入文字" title="加入文字" aria-label="加入文字"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6V4h12v2M10 4v13M7 17h6"/><path d="M18 14v6M15 17h6"/></svg></button>
-        <select id="mc-stamp" data-lb="圖章" aria-label="圖章" hidden></select>
         <button class="btn ib dd" id="mc-sigmenu" data-lb="加入簽署" aria-haspopup="menu" aria-expanded="false" title="簽名" aria-label="簽名"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M15 4l5 5-9 9H6v-5z"/></svg></button>
-        <input type="file" id="mc-file" accept="image/*" hidden></div><div class="gl">簽名與印章</div></div>
+        <input type="file" id="mc-file" accept="image/*" hidden></div><div class="gl">簽名</div></div>
       <span class="tip" id="mc-tip"></span>
     </div>
     <div class="tpanel gut" id="pn-add" role="tabpanel" aria-labelledby="tab-add">
@@ -493,6 +507,8 @@ body.fldlock #m-select { color: inherit; }
 
   <div class="work">
     <nav class="rail" id="thumbs" aria-label="頁面縮圖" title="拖拉重排頁面;右鍵(手機長按)旋轉、刪除、插入空白頁"></nav>
+    <div class="railrz" id="railrz" role="separator" aria-orientation="vertical" aria-label="拖拉調整頁面欄闊度" title="拖拉調整頁面欄闊度(拉到最窄即收埋;雙擊還原)"></div>
+    <button type="button" class="railopen" id="railopen" title="打開頁面欄" aria-label="打開頁面欄"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16"/><path d="M13 10l2 2-2 2"/></svg></button>
     <section class="stage-wrap" aria-label="文件">
       <div class="notice" id="notice" hidden></div>
       <div class="stage" id="stage"><div class="pages" id="pages"></div></div>
@@ -507,6 +523,7 @@ body.fldlock #m-select { color: inherit; }
           <button type="button" id="mk-colors" class="csw ka" title="文字顏色" aria-label="文字顏色"></button>
           <label class="tgl" title="粗體"><input type="checkbox" id="mk-bold"><b>B</b></label><label class="tgl ib" title="斜體"><input type="checkbox" id="mk-it" aria-label="斜體"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5h7M7 19h7M14 5l-4 14"/></svg></label><label class="tgl ib" title="底線"><input type="checkbox" id="mk-ul" aria-label="底線"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v8a5 5 0 0 0 10 0V4M5 20h14"/></svg></label><label class="tgl ib" title="刪除線"><input type="checkbox" id="mk-st" aria-label="刪除線"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M16.5 7.5c-.6-1.6-2.2-2.5-4.5-2.5-2.6 0-4.2 1.2-4.2 3 0 3.8 8.4 2.2 8.4 6 0 1.8-1.8 3-4.4 3-2.1 0-3.8-.8-4.6-2.4"/></svg></label><button type="button" class="tgl ib" id="mk-sup" title="上標(先喺編輯中揀字)" aria-label="上標"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><text x="2" y="20" font-size="17" font-family="serif" fill="currentColor">T</text><text x="14" y="10" font-size="10" font-weight="700" fill="currentColor">1</text></svg></button><button type="button" class="tgl ib" id="mk-sub" title="下標(先喺編輯中揀字)" aria-label="下標"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><text x="2" y="17" font-size="17" font-family="serif" fill="currentColor">T</text><text x="14" y="23" font-size="10" font-weight="700" fill="currentColor">1</text></svg></button>
           <div class="seg" role="group" aria-label="文字對齊"><button id="mk-al-0" class="ibs" title="靠左" aria-label="靠左"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg></button><button id="mk-al-1" class="ibs" title="置中" aria-label="置中"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 10h10M4 14h16M7 18h10"/></svg></button><button id="mk-al-2" class="ibs" title="靠右" aria-label="靠右"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M10 10h10M4 14h16M10 18h10"/></svg></button><button id="mk-al-3" class="ibs" title="分散對齊" aria-label="分散對齊"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg></button></div>
+          <div class="seg" role="group" aria-label="垂直對齊(固定高度嘅文字格先見到分別)"><button id="mk-va-0" class="ibs" title="向上對齊" aria-label="向上對齊"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16"/><rect x="8" y="8" width="8" height="12" rx="1"/></svg></button><button id="mk-va-1" class="ibs" title="垂直置中" aria-label="垂直置中"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h3M17 12h3"/><rect x="8" y="6" width="8" height="12" rx="1"/></svg></button><button id="mk-va-2" class="ibs" title="向下對齊" aria-label="向下對齊"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><rect x="8" y="4" width="8" height="12" rx="1"/></svg></button></div>
           <span class="wbx" title="行距(倍數,可手打;編輯文字時揀咗字就只改揀咗嗰部分)"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v16M3.5 6.5L6 4l2.5 2.5M3.5 17.5L6 20l2.5-2.5"/><path d="M12 6h9M12 10h9M12 14h9M12 18h9"/></svg><input type="number" id="mk-lsp" min="0.8" max="4" step="0.05" inputmode="decimal" aria-label="行距"><button type="button" class="wdd" id="mk-lsp-dd" aria-label="揀行距"><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span>
           <span class="wbx" title="字距(pt,可手打;編輯文字時揀咗字就只改揀咗嗰部分)"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18M6 2.5L3 5l3 2.5M18 2.5L21 5l-3 2.5"/><path d="M4 12h16M4 16h16M4 20h16"/></svg><input type="number" id="mk-csp" min="-2" max="30" step="0.5" inputmode="decimal" aria-label="字距"><button type="button" class="wdd" id="mk-csp-dd" aria-label="揀字距"><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span>
           <button type="button" class="btn ib" data-def="tfmt" title="設為預設文字格式(只限目前文件,重開會重設)" aria-label="設為預設文字格式(只限目前文件,重開會重設)"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
@@ -528,6 +545,7 @@ body.fldlock #m-select { color: inherit; }
           <button type="button" id="mk-scolors" class="csw kl" title="線條顏色" aria-label="線條顏色"></button>
           <span class="wbx"><input type="number" id="mk-lw" min="0.25" max="30" step="0.25" inputmode="decimal" title="線條粗細(pt,可手打)" aria-label="線條粗細"><button type="button" class="wdd" id="mk-lw-dd" aria-label="揀粗幼數值"><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span><button type="button" id="mk-lls" class="csw kls" title="線條線款" aria-label="線條線款"></button>
           <button type="button" class="btn ib" data-def="sshp" title="設為預設圖案風格(只限目前文件,重開會重設)" aria-label="設為預設圖案風格(只限目前文件,重開會重設)"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
+                  <div id="mk-op-g" class="oprow" title="物件透明度" style="display:flex;align-items:center;gap:8px;width:100%;flex-basis:100%"><span aria-hidden="true" style="font-size:12px;color:var(--muted,#667085)">透明度</span><input type="range" id="mk-op" min="5" max="100" step="5" value="100" style="flex:1;min-width:90px;accent-color:var(--accent,#2f5fd0)" aria-label="物件透明度"><output id="mk-op-v" style="min-width:3em;text-align:right;font-variant-numeric:tabular-nums">100%</output></div>
           </div>
         <div class="cg" data-t="圖案文字" data-mk="shape">
           <textarea id="mk-stx" rows="2" placeholder="圖案中間文字(可留空)" title="圖案中間文字(可留空)" aria-label="圖案中間文字"></textarea>
@@ -662,7 +680,7 @@ function toast(msg, ms = 3200) {
   clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), ms);
 }
 const tick = () => new Promise((r) => setTimeout(r, 0));
-function setBusy(on, text) { $('#busy').classList.toggle('on', on); if (text) $('#busyt').textContent = text; S.busy = on; $('#export').disabled = $('#save').disabled = on || !S.pages.length; $('#close-file').disabled = on || !S.pages.length; }
+function setBusy(on, text) { $('#busy').classList.toggle('on', on); if (text) $('#busyt').textContent = text; S.busy = on; $('#export').disabled = $('#save').disabled = $('#print').disabled = on || !S.pages.length; $('#close-file').disabled = on || !S.pages.length; }
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
 /* ------------------------------------------------------------------ 影像運算(純 JS,取代 OpenCV) */
@@ -911,11 +929,13 @@ async function loadPdf(bytes, name, isSample) {
   } finally { setBusy(false); }
 }
 
-function pageCells(pg) {   // 填寫用:只供貼合,唔會變成欄位
+function pageCells(pg, force) {   // 填寫用:只供貼合,唔會變成欄位;要撳「偵測本頁」先會掃描該頁
+  if (!pg.scan && !force) return [];
   const key = JSON.stringify(S.opts);
   if (!pg.cells || pg.cellsKey !== key) {
     let cs = []; try { cs = detect(pg.gray, pg.W, pg.H, S.opts, pg.u); } catch (e) { console.warn('偵測失敗', e); }
     cs.sort((a, b) => { const t = Math.min(a.y1 - a.y0, b.y1 - b.y0) * 0.5; return Math.abs(a.y0 - b.y0) < t ? a.x0 - b.x0 : a.y0 - b.y0; });
+    if (pg.dismissed && pg.dismissed.length) cs = cs.filter((c) => !pg.dismissed.some((d) => { const w = Math.min(c.x1, d.x1) - Math.max(c.x0, d.x0), h = Math.min(c.y1, d.y1) - Math.max(c.y0, d.y0); return w > 0 && h > 0 && w * h > 0.5 * Math.min((c.x1 - c.x0) * (c.y1 - c.y0), (d.x1 - d.x0) * (d.y1 - d.y0)); }));
     cs.forEach((c, i) => { c.idx = i; }); pg.cells = cs; pg.cellsKey = key;
   }
   return pg.cells;
@@ -1019,7 +1039,7 @@ function updateStatus() {
     nt.hidden = true; nt.textContent = ''; void none; }
   $('#dn-name').textContent = S.pages.length ? S.name : '未開啟文件';
   $('#dn-meta').textContent = S.pages.length ? S.pages.length + ' 頁' + (S.sample ? ' · 範例' : '') : '';
-  $('#export').disabled = $('#save').disabled = S.busy || !S.pages.length; $('#close-file').disabled = S.busy || !S.pages.length;
+  $('#export').disabled = $('#save').disabled = $('#print').disabled = S.busy || !S.pages.length; $('#close-file').disabled = S.busy || !S.pages.length;
   if (S.hooks.after) S.hooks.after();
 }
 function select(f) {
@@ -1197,6 +1217,25 @@ function doCloseFile() {
   const nt = $('#notice'); nt.hidden = false; nt.textContent = '未開啟文件。按「檔案」分頁嘅「開啟 PDF」,或者將 PDF 拖入視窗。';
 }
 S.closeFile = doCloseFile;
+/* 下載前讓用戶自己改檔名;.pdf 自動補上(唔使打,打咗都唔會重複) */
+function askFileName(base) {
+  return new Promise((res) => {
+    const back = el('div', 'modal-back'), box = el('div', 'modal'), h = el('div', 'md-h'), bd = el('div', 'md-b'), ft = el('div', 'md-f');
+    box.style.width = 'min(460px, 100%)'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); back.style.zIndex = '60';
+    h.append(el('b', '', '儲存 PDF'));
+    const row = el('div'), inp = el('input'), ext = el('span', '', '.pdf');
+    row.style.cssText = 'display:flex;align-items:center;gap:6px'; inp.type = 'text'; inp.value = base; inp.style.cssText = 'flex:1;min-width:0;padding:7px 9px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink)'; inp.setAttribute('aria-label', '檔名'); ext.style.cssText = 'color:var(--muted);font-weight:600';
+    row.append(inp, ext); bd.append(el('p', 'hint', '檔名(.pdf 會自動加上)'), row);
+    let done = false; const fin = (v) => { if (done) return; done = true; document.removeEventListener('keydown', onKey, true); back.remove(); res(v); };
+    const clean = () => { let n = inp.value.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '').replace(/\.pdf\s*$/i, '').trim(); return (n || base || 'form') + '.pdf'; };
+    const cancel = el('button', 'btn', '取消'), ok = el('button', 'btn primary', '儲存');
+    cancel.addEventListener('click', () => fin(null)); ok.addEventListener('click', () => fin(clean()));
+    const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fin(null); } else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); fin(clean()); } };
+    document.addEventListener('keydown', onKey, true);
+    ft.append(cancel, ok); box.append(h, bd, ft); back.append(box); back.addEventListener('pointerdown', (e) => { if (e.target === back) fin(null); });
+    document.body.append(back); inp.focus(); inp.select();
+  });
+}
 async function exportPdf() {
   if (!S.pages.length || S.busy) return;
   const n = allFields().length, nm = S.marks.length;
@@ -1205,8 +1244,9 @@ async function exportPdf() {
     const bytes = await buildPdf();
     const dl = await (window.claude && window.claude.use ? window.claude.use('downloads') : null);
     if (!dl) { toast('呢個檢視不支援下載,請喺 claude.ai 內開啟本頁'); return; }
-    const base = (S.name || 'form').replace(/\.pdf$/i, '');
-    const fname = base + (n ? '_fillable.pdf' : '_edited.pdf');
+    const base = (S.name || 'form').replace(/\.pdf$/i, '').replace(/_(edited|fillable)$/, '');
+    setBusy(false); const fname = await askFileName(base + (n ? '_fillable' : '_edited'));
+    if (!fname) { toast('已取消儲存'); return; }
     const r = await dl.save({ filename: fname, data: bytes });
     toast(r.status === 'saved' ? '已儲存 ' + fname + '(' + n + ' 個欄位' + (nm ? '、' + nm + ' 項內容' : '') + ')' : '已送出');
   } catch (e) {
@@ -1214,14 +1254,45 @@ async function exportPdf() {
   } finally { setBusy(false); }
 }
 
-async function savePdf() {
+async function printPdf() {
+  if (!S.pages.length || S.busy) return;
+  setBusy(true, '準備列印…'); await tick();
+  try {
+    const bytes = await buildPdf(), embedded = window.top !== window.self;
+    if (!embedded) {   // 獨立頁面 / 已安裝:用隱藏 iframe 載入 PDF 直接列印(向量,最清晰)
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none'; f.src = url;
+      const clean = () => { setTimeout(() => { f.remove(); URL.revokeObjectURL(url); }, 120000); };
+      f.onload = () => { setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, '_blank') || toast('呢個環境唔支援直接列印,請先「另存」再用 PDF 閱讀器列印'); } clean(); }, 400); };
+      document.body.append(f);
+    } else {   // 內嵌(例如 claude.ai):將每頁畫成圖,用本頁列印;沙盒唔准列印嘅話會有提示
+      const doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise, root = document.createElement('div'); root.id = 'printroot';
+      let sz = '';
+      for (let n = 1; n <= doc.numPages; n++) {
+        const pgx = await doc.getPage(n), vp0 = pgx.getViewport({ scale: 1 }), vp = pgx.getViewport({ scale: 2.2 }), cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+        await pgx.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; if (n === 1) sz = Math.round(vp0.width) + 'pt ' + Math.round(vp0.height) + 'pt';
+        root.append(cv);
+      }
+      const st = document.createElement('style'); st.id = 'printcss'; st.textContent = '#printroot{display:none}@media print{@page{size:' + sz + ';margin:0}body>*:not(#printroot){display:none!important}html,body{background:#fff!important;height:auto!important;overflow:visible!important}#printroot{display:block}#printroot canvas{display:block;width:100%;height:auto;page-break-after:always;break-after:page}#printroot canvas:last-child{page-break-after:auto;break-after:auto}}';
+      document.head.append(st); document.body.append(root);
+      let fired = false; const on = () => { fired = true; }, done = () => { window.removeEventListener('beforeprint', on); window.removeEventListener('afterprint', done); root.remove(); st.remove(); };
+      window.addEventListener('beforeprint', on); window.addEventListener('afterprint', done);
+      setBusy(false); window.print();
+      setTimeout(() => { if (!fired) { done(); toast('呢個內嵌環境唔准列印(瀏覽器沙盒限制)。請用「另存」後用 PDF 閱讀器列印,或者開獨立頁面 / 安裝版', 6000); } }, 900);
+    }
+  } catch (e) { console.error(e); toast('列印失敗:' + (e && e.message ? e.message : e)); }
+  finally { setBusy(false); }
+}
+$('#print').addEventListener('click', printPdf);
+window.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'p' && S.pages.length) { e.preventDefault(); printPdf(); } }, true);
+async function savePdf(asNew) {   // asNew = 另存:一定彈出「另存新檔」
   if (!S.pages.length || S.busy) return;
   if (!S.fh && !window.showSaveFilePicker) { exportPdf(); return; }   // 唔支援 → 下載
-  const name = (S.name || 'form.pdf').replace(/(\.pdf)?$/i, '.pdf');
+  const name = asNew ? (S.name || 'form').replace(/\.pdf$/i, '').replace(/_(edited|fillable)$/, '') + (allFields().length ? '_fillable.pdf' : '_edited.pdf') : (S.name || 'form.pdf').replace(/(\.pdf)?$/i, '.pdf');
   setBusy(true, '儲存中…'); await tick();
   try {
     const bytes = await buildPdf();
-    let h = S.fh;
+    let h = asNew ? null : S.fh;
     if (h && h.requestPermission && (await h.requestPermission({ mode: 'readwrite' })) !== 'granted') h = null;
     if (!h) { h = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }] }); S.fh = h; }
     const w = await h.createWritable(); await w.write(bytes); await w.close();
@@ -1286,7 +1357,7 @@ async function pickOpen() {   // Chrome / Edge:用檔案控制代碼開,之後�
 $('#open').addEventListener('click', pickOpen);
 if ('launchQueue' in window) window.launchQueue.setConsumer(async (p) => { for (const h of p.files || []) { try { await openFile(await h.getFile(), h); } catch (e) { console.error(e); } } });   // 以「PDF填表」開啟 PDF
 $('#file').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; openFile(f); });
-$('#export').addEventListener('click', exportPdf);
+$('#export').addEventListener('click', () => savePdf(true));
 $('#redetect').addEventListener('click', () => detectNow('all'));
 $('#detect-cur').addEventListener('click', () => detectNow('cur'));
 $('#rb-detect').addEventListener('click', () => detectNow('cur'));
@@ -1316,6 +1387,21 @@ for (const t of document.querySelectorAll('.tab:not(.stab)')) {
 }
 function zoom(d) { S.zoom = Math.max(0.5, Math.min(2.5, Math.round((S.zoom + d) * 100) / 100)); $('#pages').style.setProperty('--zoom', S.zoom); $('#zoomv').textContent = Math.round(S.zoom * 100) + '%'; }
 $('#z-in').addEventListener('click', () => zoom(0.15)); $('#z-out').addEventListener('click', () => zoom(-0.15));
+/* 鍵盤縮放:Ctrl/⌘ + 「+」放大、「−」縮小、「0」還原 100%(同時攔截瀏覽器本身嘅縮放) */
+document.addEventListener('keydown', (e) => {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || e.isComposing) return;
+  const k = e.key; if (!S.pages.length) return;
+  if (k === '+' || k === '=' || e.code === 'NumpadAdd') { e.preventDefault(); zoom(0.15); }
+  else if (k === '-' || k === '_' || e.code === 'NumpadSubtract') { e.preventDefault(); zoom(-0.15); }
+  else if (k === '0' || e.code === 'Numpad0') { e.preventDefault(); zoom(1 - S.zoom); }
+}, true);
+/* 滑鼠滾輪縮放:Ctrl/⌘ + 滾輪(觸控板雙指開合同樣有效),以滑鼠位置為中心;一般滾輪照舊捲動頁面 */
+$('#stage').addEventListener('wheel', (e) => {
+  if (!(e.ctrlKey || e.metaKey) || !S.pages.length) return; e.preventDefault();
+  const st = e.currentTarget, r = st.getBoundingClientRect(), cx = e.clientX - r.left, cy = e.clientY - r.top, w0 = st.scrollWidth, h0 = st.scrollHeight, fx = (st.scrollLeft + cx) / w0, fy = (st.scrollTop + cy) / h0, z0 = S.zoom;
+  zoom((e.deltaY < 0 ? 1 : -1) * Math.min(0.3, Math.max(0.05, Math.abs(e.deltaY) / 400)));
+  if (S.zoom !== z0) { st.scrollLeft = fx * st.scrollWidth - cx; st.scrollTop = fy * st.scrollHeight - cy; }
+}, { passive: false });
 $('#vis').addEventListener('click', (e) => { S.show = !S.show; e.currentTarget.setAttribute('aria-pressed', S.show); e.currentTarget.classList.toggle('on', !S.show); e.currentTarget.textContent = S.show ? '顯示欄位' : '已隱藏欄位'; renderAllOverlays(); });
 $('#e-del').addEventListener('click', deleteSel);
 $('#e-name').addEventListener('input', (e) => { const f = S.sel; if (!f) return; f.name = e.target.value.trim(); f.userName = true; const li = $('#list li.sel .nm'); if (li) li.textContent = f.name; });
@@ -1616,7 +1702,7 @@ async function renderTextPng(m) {
   const c = cv.getContext('2d'); if (m.csp && 'letterSpacing' in c) c.letterSpacing = (m.csp * K) + 'px'; if (m.bg) { c.fillStyle = m.bg; c.fillRect(0, 0, cv.width, cv.height); }
   c.font = font; c.fillStyle = m.color; c.strokeStyle = m.color; c.textBaseline = 'middle';
   const al = m.align || 0, inner = cv.width - 2 * (pad + bw) - indPx, x0 = pad + bw + indPx, fpx = m.fs * K; c.textAlign = 'left';
-  const top = m.ch && !m.box ? Math.max(0, (cv.height - sumLh) / 2) : pad + bw; let yAcc = 0;
+  const vaM = m.va != null ? m.va : (m.ch && !m.box ? 1 : 0), top = vaM === 1 ? Math.max(0, (cv.height - sumLh) / 2) : vaM === 2 ? Math.max(pad + bw, cv.height - sumLh - pad - bw) : pad + bw; let yAcc = 0;
   lines.forEach((l, i) => {
     const y = top + yAcc + lhs[i] / 2, runs = lineRuns(l, offs[i], sf, ss), flagged = runs.some((r) => r.f) || !!ss; yAcc += lhs[i]; let x = x0, done = false;
     c.font = font; let lw0 = flagged ? runsW(c, runs, m, fpx) : c.measureText(l).width; c.font = font;
@@ -1627,7 +1713,6 @@ async function renderTextPng(m) {
     if (!done) { let cx = x; for (const r of runs) { c.font = mkFont(m, fpx * (r.f ? 0.65 : 1)); if (r.s !== undefined) setLS(c, r.s * K); c.fillText(r.t, cx, y + (r.f === 1 ? -fpx * 0.3 : r.f === 2 ? fpx * 0.12 : 0)); cx += c.measureText(r.t).width; } c.font = font; if (ss) setLS(c, (m.csp || 0) * K); }
     if (m.ul || m.st) { c.save(); c.strokeStyle = m.color; c.lineWidth = Math.max(1, fpx / 14); c.setLineDash([]); c.beginPath(); if (m.ul) { c.moveTo(x, y + fpx * 0.52); c.lineTo(x + lw0, y + fpx * 0.52); } if (m.st) { c.moveTo(x, y); c.lineTo(x + lw0, y); } c.stroke(); c.restore(); }
   });
-  if (m.field) { c.save(); c.strokeStyle = m.color; c.lineWidth = Math.max(1, 0.9 * K); c.setLineDash([]); c.beginPath(); c.moveTo(0, cv.height - c.lineWidth / 2); c.lineTo(cv.width, cv.height - c.lineWidth / 2); c.stroke(); c.restore(); }
   if (m.bc) { c.strokeStyle = m.bc; c.lineWidth = bw; c.lineJoin = 'miter'; c.setLineDash(lsDash(m.ls, bw)); c.strokeRect(bw / 2, bw / 2, cv.width - bw, cv.height - bw); }
   return { url: cv.toDataURL('image/png'), wPt: cv.width / K, hPt: cv.height / K };
 }
@@ -1645,7 +1730,7 @@ function shapeText(c, m, w, h, k, lw) {
 function renderShapePng(m, pg) {
   const wPt = Math.max(2, (m.x1 - m.x0) / pg.vp.scale), hPt = Math.max(2, (m.y1 - m.y0) / pg.vp.scale), k = Math.min(K, 2400 / Math.max(wPt, hPt));
   const cv = document.createElement('canvas'); cv.width = Math.max(4, Math.ceil(wPt * k)); cv.height = Math.max(4, Math.ceil(hPt * k));
-  const c = cv.getContext('2d'), lw = (m.lw || 2) * k, w = cv.width, h = cv.height, i = lw / 2;
+  const c = cv.getContext('2d'), lw = (m.fillc && !m.color ? 0 : (m.lw || 2)) * k, w = cv.width, h = cv.height, i = lw / 2;
   c.beginPath();
   if (m.shape === 'ellipse') c.ellipse(w / 2, h / 2, Math.max(1, w / 2 - i), Math.max(1, h / 2 - i), 0, 0, Math.PI * 2);
   else if (PTS[m.shape]) { PTS[m.shape].forEach(([a, b], n) => { const x = i + a * (w - lw), y = i + b * (h - lw); n ? c.lineTo(x, y) : c.moveTo(x, y); }); c.closePath(); }
@@ -1688,7 +1773,7 @@ function renderMarks(pi) {
     if (m.page !== pi || !m.url || m === editMk) continue;
     const d = el('div', 'mk' + (m.kind === 'mu' ? ' mu' : '') + (S.selMark === m ? ' sel' : '') + (S.multi.includes(m) ? ' msel' : '')); d.dataset.id = m.id;
     d.style.left = (m.x0 / pg.W * 100) + '%'; d.style.top = (m.y0 / pg.H * 100) + '%'; d.style.width = ((m.x1 - m.x0) / pg.W * 100) + '%'; d.style.height = ((m.y1 - m.y0) / pg.H * 100) + '%';
-    if (m.rot) d.style.transform = 'rotate(' + m.rot + 'deg)';
+    if (m.rot) d.style.transform = 'rotate(' + m.rot + 'deg)'; if (m.op) d.style.opacity = String(m.op);
     const im = new Image(); im.src = m.url; im.alt = ''; d.append(im);
     if (S.selMark === m && m.kind !== 'mu') for (const c of ((m.kind === 'shape' || (m.kind === 'text' && !m.stamp)) ? ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] : ['nw', 'ne', 'sw', 'se'])) { const h = el('i', 'hd'); h.dataset.c = c; d.append(h); }
     if (S.selMark === m && m.kind === 'shape') { const h = el('i', 'hd'); h.dataset.c = 'rot'; h.title = '拖動旋轉(Shift 每 15° 一級)'; d.append(h); }
@@ -1706,17 +1791,18 @@ function drawThumb(i) {
   const pg = S.pages[i]; if (!pg || !pg.th) return;
   const cv = pg.th.querySelector('canvas'), c = cv.getContext('2d'), k = cv.width / pg.W;
   c.drawImage(pg.canvas, 0, 0, cv.width, cv.height);
-  for (const m of S.marks) { if (m.page !== i || !m.url) continue; const im = thumbImg(m.url, () => drawThumb(i)); if (im) { if (m.rot) { c.save(); c.translate((m.x0 + m.x1) / 2 * k, (m.y0 + m.y1) / 2 * k); c.rotate(m.rot * Math.PI / 180); c.drawImage(im, -(m.x1 - m.x0) / 2 * k, -(m.y1 - m.y0) / 2 * k, (m.x1 - m.x0) * k, (m.y1 - m.y0) * k); c.restore(); } else c.drawImage(im, m.x0 * k, m.y0 * k, (m.x1 - m.x0) * k, (m.y1 - m.y0) * k); } }
+  for (const m of S.marks) { if (m.page !== i || !m.url) continue; const im = thumbImg(m.url, () => drawThumb(i)); c.globalAlpha = m.op || 1; if (im) { if (m.rot) { c.save(); c.translate((m.x0 + m.x1) / 2 * k, (m.y0 + m.y1) / 2 * k); c.rotate(m.rot * Math.PI / 180); c.drawImage(im, -(m.x1 - m.x0) / 2 * k, -(m.y1 - m.y0) / 2 * k, (m.x1 - m.x0) * k, (m.y1 - m.y0) * k); c.restore(); } else c.drawImage(im, m.x0 * k, m.y0 * k, (m.x1 - m.x0) * k, (m.y1 - m.y0) * k); } c.globalAlpha = 1; }
 }
 /* 填寫:將偵測到嘅格用淺色框顯示出嚟(已填嘅格唔顯示) */
 function renderHints(pi) {
   const pg = S.pages[pi]; if (!pg || !pg.mv) return;
   let L = pg.chl; if (!L) { L = pg.chl = el('div', 'chl'); pg.mv.parentElement.insertBefore(L, pg.mv); }
   L.textContent = ''; if (!S.mkMode || S.tool === 'hand' || S.annot) return;   // 註解分頁/手模式:隱藏偵測格
-  for (const c of A.pageCells(pg)) {
+  const fillM = S.tool === 'fill', hv = S.hov && S.hov.pi === pi ? S.hov.c : null;
+  for (const c of (fillM && !pg.scan ? (hv ? [hv] : []) : A.pageCells(pg))) {
     if (markInCell(pi, c)) continue;
-    const act = S.actCell && S.actCell.c === c, d = el('i', (c.kind === 'check' ? 'k' : '') + (act ? ' act' : ''));
-    if (act) for (const n of ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']) d.append(el('b', n)); d.style.cssText = 'left:' + (c.x0 / pg.W * 100) + '%;top:' + (c.y0 / pg.H * 100) + '%;width:' + ((c.x1 - c.x0) / pg.W * 100) + '%;height:' + ((c.y1 - c.y0) / pg.H * 100) + '%';
+    const act = S.actCell && S.actCell.c === c, d = el('i', (c.kind === 'check' ? 'k' : '') + (act ? ' act' : '') + (fillM && c === hv ? ' hov' : ''));
+    if (act) { for (const n of ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']) d.append(el('b', n)); d.append(el('u', 'x', '×')); } d.style.cssText = 'left:' + (c.x0 / pg.W * 100) + '%;top:' + (c.y0 / pg.H * 100) + '%;width:' + ((c.x1 - c.x0) / pg.W * 100) + '%;height:' + ((c.y1 - c.y0) / pg.H * 100) + '%';
     L.append(d);
   }
 }
@@ -1752,6 +1838,8 @@ const COLORS = ['#111111', '#d11a2a', '#1a4fd0', '#14803c'];
 function syncMarkSec(m) {
   { const b = $('#mk-brush'); if (b) { b.disabled = m.kind === 'img' && !S.paint; b.classList.toggle('on', !!S.paint); } }
   for (const b of document.querySelectorAll('#mk-sec [data-mk]')) b.hidden = b.dataset.mk !== m.kind;
+  { const row = $('#mk-op-g'), gt = { text: '風格設定', shape: '圖案風格', img: '圖片設定', mu: '文字標記' }[m.kind], g = gt && document.querySelector('#mk-sec .cg[data-t="' + gt + '"]');
+    if (g) { g.append(row); row.hidden = false; const v = Math.round((m.op || 1) * 100); $('#mk-op').value = String(v); $('#mk-op-v').textContent = v + '%'; } else row.hidden = true; }
   if (m.kind === 'text') { $('#mk-text').value = m.text; $('#mk-fs').value = m.fs; $('#mk-bold').checked = !!m.bold; for (const p of ['it', 'ul', 'st']) $('#mk-' + p).checked = !!m[p]; setColorSel($('#mk-bc'), m.bc || ''); $('#mk-bw').value = String(m.bw || 2); setLsIcon($('#mk-bls'), m.ls); $('#mk-font').value = m.font || 'sans'; syncAlign(m);
     setColorSel($('#mk-colors'), m.color); setColorSel($('#mk-bg'), m.bg || ''); $('#mk-pad').value = m.pad == null ? ((m.cell || m.stamp) ? '' : '0') : String(m.pad); $('#mk-lsp').value = String(m.lsp || 1.35); $('#mk-csp').value = String(m.csp || 0); }
   else if (m.kind === 'shape') { $('#mk-shape').value = m.shape; $('#mk-lw').value = String(m.lw || 2); setLsIcon($('#mk-lls'), m.ls); setColorSel($('#mk-fill'), m.fillc || ''); setColorSel($('#mk-scolors'), m.color); $('#mk-stx').value = m.stx || ''; $('#mk-sfs').value = m.sfs || 14; $('#mk-sbold').checked = !!m.sbold; setColorSel($('#mk-stc'), m.scol || '#111111'); $('#mk-rot').value = String(Math.round(m.rot || 0)); for (const x of document.querySelectorAll('#mk-sec [data-mk="shape"]')) if (x.dataset.t === '圖案文字') x.hidden = /^(line|larrow|check|xmark)$/.test(m.shape); }
@@ -1851,7 +1939,8 @@ const stepMk = (d) => { const m = S.selMark; if (!m || m.kind !== 'text') return
 $('#mk-fs-minus').addEventListener('click', () => stepMk(-1)); $('#mk-fs-plus').addEventListener('click', () => stepMk(1));
 $('#mk-font').addEventListener('change', (e) => setProp('font', e.target.value, true));
 for (const k of [0, 1, 2, 3]) $('#mk-al-' + k).addEventListener('click', () => { setProp('align', k, true); syncAlign(S.selMark); });
-function syncAlign(m) { for (const k of [0, 1, 2, 3]) $('#mk-al-' + k).classList.toggle('on', ((m && m.align) || 0) === k); }
+for (const k of [0, 1, 2]) $('#mk-va-' + k).addEventListener('click', () => { setProp('va', k, true); syncAlign(S.selMark); });
+function syncAlign(m) { for (const k of [0, 1, 2]) $('#mk-va-' + k).classList.toggle('on', (m && m.va != null ? m.va : (m && m.ch && !m.box ? 1 : 0)) === k); for (const k of [0, 1, 2, 3]) $('#mk-al-' + k).classList.toggle('on', ((m && m.align) || 0) === k); }
 $('#mk-bold').addEventListener('change', (e) => setProp('bold', e.target.checked, true));
 for (const p of ['it', 'ul', 'st']) $('#mk-' + p).addEventListener('change', (e) => setProp(p, e.target.checked, true));
 bindWeight($('#mk-lw'), $('#mk-lw-dd'), 'lw'); bindWeight($('#mk-bw'), $('#mk-bw-dd'), 'bw'); bindLsSel($('#mk-lls')); bindLsSel($('#mk-bls'));
@@ -1863,6 +1952,9 @@ bindColorSel($('#mk-stc'), 'scol');
 $('#mk-sbold').addEventListener('change', (e) => setProp('sbold', e.target.checked, true));
 function setRot(v) { const m = S.selMark; if (!m || m.kind !== 'shape') return; let a = Number(v) || 0; a = ((a + 180) % 360 + 360) % 360 - 180; if (a === -180) a = 180; m.rot = a; $('#mk-rot').value = String(a); renderMarks(m.page); record(); }
 $('#mk-rot').addEventListener('change', (e) => setRot(e.target.value));
+{ const op = $('#mk-op');   // 所有物件(圖案/文字/圖片/螢光)通用透明度
+  op.addEventListener('input', () => { const m = S.selMark; if (!m) return; const v = Number(op.value); $('#mk-op-v').textContent = v + '%'; if (v >= 100) delete m.op; else m.op = v / 100; renderMarks(m.page); });
+  op.addEventListener('change', () => { if (S.selMark) record(); }); }
 $('#mk-rot-l').addEventListener('click', () => setRot((S.selMark && S.selMark.rot || 0) - 90)); $('#mk-rot-r').addEventListener('click', () => setRot((S.selMark && S.selMark.rot || 0) + 90));
 function bindNum(inp, dd, prop, list, lo, hi, def, unit) {
   const rk = prop === 'csp' ? 'sc' : 'sl';
@@ -1891,8 +1983,9 @@ $('#mk-pad-dd').addEventListener('click', (e) => {
 });
 $('#mk-white').addEventListener('change', (e) => setProp('white', e.target.checked, true));
 $('#mk-del').addEventListener('click', delMark);
+
 /* ---- 預設格式 / 複製貼上 / 格式複製 ---- */
-const FMT_T = ['fs', 'font', 'color', 'bold', 'it', 'ul', 'st', 'align', 'lsp', 'csp'], STY_T = ['bg', 'bc', 'bw', 'ls'], FMT_S = ['color', 'fillc', 'lw', 'ls'], FMT_ALL_T = [...FMT_T, ...STY_T];
+const FMT_T = ['fs', 'font', 'color', 'bold', 'it', 'ul', 'st', 'align', 'va', 'lsp', 'csp'], STY_T = ['bg', 'bc', 'bw', 'ls'], FMT_S = ['color', 'fillc', 'lw', 'ls'], FMT_ALL_T = [...FMT_T, ...STY_T];
 let DEF = { tfmt: {}, tsty: {}, sshp: {} };   // 只限目前文件,重開文件就重設(唔儲存)
 const saveDef = () => {};
 const pick = (m, keys) => { const o = {}; for (const k of keys) if (m[k] !== undefined) o[k] = m[k]; return o; };
@@ -1953,12 +2046,14 @@ function arrOp(op) {
 }
 for (const b of document.querySelectorAll('#mk-arr [data-arr]')) b.addEventListener('click', () => arrOp(b.dataset.arr));
 $('#arr-del').addEventListener('click', delMulti);
+function delCell(pi, c) { const pg = S.pages[pi]; if (!pg || !c) return; (pg.dismissed = pg.dismissed || []).push({ x0: c.x0, y0: c.y0, x1: c.x1, y1: c.y1 }); if (pg.cells) pg.cells = pg.cells.filter((x) => x !== c); if (S.actCell && S.actCell.c === c) S.actCell = null; renderHints(pi); toast('已刪除呢個偵測格', 1800); }
 function delMark() { const m = S.selMark; if (!m) return; S.marks.splice(S.marks.indexOf(m), 1); selectMark(null); updateExportState(); record(); }
-function updateExportState() { $('#export').disabled = $('#save').disabled = S.busy || !S.pages.length; }
+function updateExportState() { $('#export').disabled = $('#save').disabled = $('#print').disabled = S.busy || !S.pages.length; }
 document.addEventListener('keydown', (e) => {
   const tag = (e.target && e.target.tagName) || ''; if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || !M.back.hidden) return;
   if ((e.key === 'Delete' || e.key === 'Backspace') && S.multi.length > 1) { e.preventDefault(); delMulti(); }
   else if ((e.key === 'Delete' || e.key === 'Backspace') && S.selMark) { e.preventDefault(); delMark(); }
+  else if ((e.key === 'Delete' || e.key === 'Backspace') && S.actCell && !pending) { e.preventDefault(); delCell(S.actCell.pi, S.actCell.c); }
   else if (e.key === 'Escape') { if (S.paint) stopPaint(); else if (pending) setPending(null); else if (S.multi.length) selectMark(null); else if (S.selMark) selectMark(null); }
 });
 
@@ -1975,7 +2070,7 @@ function layoutEdit() {
   const c0 = document.createElement('canvas').getContext('2d'); c0.font = mkFont(m, fs);
   const lines = String(ta.value || ' ').split('\n'), tw = Math.max(...lines.map((l) => c0.measureText(l).width + (m.csp || 0) * sc * l.length)) + fs * 0.6;
   let w = tw + 2 * pad, h = lines.length * lh + 2 * pad; if (m.cw) { w = m.cw * sc; h = m.ch * sc; }
-  const padTop = m.ch && !m.box ? Math.max(pad, (h - lines.length * lh) / 2) : pad;
+  const vaE = m.va != null ? m.va : (m.ch && !m.box ? 1 : 0), padTop = vaE === 1 ? Math.max(pad, (h - lines.length * lh) / 2) : vaE === 2 ? Math.max(pad, h - lines.length * lh - pad) : pad;
   Object.assign(ta.style, { left: (m.x0 / pg.W * 100) + '%', top: (m.y0 / pg.H * 100) + '%', width: (w / pg.W * 100) + '%', height: (h / pg.H * 100) + '%',
     fontSize: (fs * cs) + 'px', lineHeight: String(m.lsp || 1.35), letterSpacing: ((m.csp || 0) * sc * cs) + 'px', padding: (padTop * cs) + 'px ' + (pad * cs) + 'px ' + (pad * cs) + 'px', color: m.color, background: m.bg || 'rgba(255,255,255,.88)', fontWeight: m.bold ? '700' : '400', textAlign: ['left', 'center', 'right', 'left'][m.align || 0], fontFamily: mkFamily(m), fontStyle: m.it ? 'italic' : 'normal', textDecoration: ((m.ul ? 'underline ' : '') + (m.st ? 'line-through' : '')).trim() || 'none' });
   ta.style.whiteSpace = m.box ? 'pre-wrap' : 'pre'; if (m.box) ta.style.overflowY = 'auto';
@@ -2056,19 +2151,21 @@ async function openCell(pi, c) {
 const syncCellFromMark = (m) => { if (!m || m.kind !== 'text' || !m.cell) return; const pg = S.pages[m.cell.pi], c = pg && pg.cells && pg.cells.find((x) => x.idx === m.cell.idx); if (!c) return; const sc = pg.vp.scale; c.x0 = m.x0; c.y0 = m.y0; c.x1 = m.x0 + (m.cw ? m.cw * sc : m.x1 - m.x0); c.y1 = m.y0 + (m.ch ? m.ch * sc : m.y1 - m.y0); };
 /* 打字模式:撳格 = 輸入;拖格 = 移動;揀咗嘅格四角可以拉大細 */
 let cellBusy = false;
-const CUR = { nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize' };
+const CUR = { del: 'pointer', nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize' };
 function cellHit(pi, p, k) {   // 邊度可以拉大細 / 移動:回傳 { mode, c }
   const pg = S.pages[pi], ac = S.actCell && S.actCell.pi === pi ? S.actCell.c : null;
-  if (ac && !markInCell(pi, ac)) { const hr = 12 * k, mx = (ac.x0 + ac.x1) / 2, my = (ac.y0 + ac.y1) / 2, cs = { nw: [ac.x0, ac.y0], ne: [ac.x1, ac.y0], sw: [ac.x0, ac.y1], se: [ac.x1, ac.y1], n: [mx, ac.y0], s: [mx, ac.y1], w: [ac.x0, my], e: [ac.x1, my] }; for (const [n, [x, y]] of Object.entries(cs)) if (Math.hypot(p.x - x, p.y - y) <= hr) return { mode: n, c: ac }; }
+  if (ac && !markInCell(pi, ac)) { const hr = 12 * k, mx = (ac.x0 + ac.x1) / 2, my = (ac.y0 + ac.y1) / 2, cs = { nw: [ac.x0, ac.y0], ne: [ac.x1, ac.y0], sw: [ac.x0, ac.y1], se: [ac.x1, ac.y1], n: [mx, ac.y0], s: [mx, ac.y1], w: [ac.x0, my], e: [ac.x1, my] }; if (Math.hypot(p.x - ac.x1, p.y - (ac.y0 - 28 * k)) <= hr) return { mode: 'del', c: ac }; for (const [n, [x, y]] of Object.entries(cs)) if (Math.hypot(p.x - x, p.y - y) <= hr) return { mode: n, c: ac }; }
   const c = cellAt(pg, p, k); return c ? { mode: 'move', c } : null;
 }
 function cellPointer(e, pi, p, mv) {
   if (!S.mkMode) return; const pg = S.pages[pi], r = mv.getBoundingClientRect(), k = pg.W / r.width;
   const hit = cellHit(pi, p, k); if (!hit) { if (S.actCell) { S.actCell = null; renderHints(pi); } return; }
+  if (hit.mode === 'del') { e.preventDefault(); delCell(pi, hit.c); return; }
   const mode = hit.mode, c = hit.c, wasAct = !!(S.actCell && S.actCell.c === c); cellBusy = true; mv.style.cursor = mode === 'move' ? 'move' : CUR[mode];
   const o = { x0: c.x0, y0: c.y0, x1: c.x1, y1: c.y1 }, mk = markInCell(pi, c); let moved = false;
   const pos = (ev) => ({ x: (ev.clientX - r.left) * k, y: (ev.clientY - r.top) * k });
-  const mvH = (ev) => {
+  const editM = S.tool === 'edit', mvH = (ev) => {
+    if (!editM) return;   // 選擇模式:唔拖動 / 唔改大細
     const q = pos(ev), dx = q.x - p.x, dy = q.y - p.y; if (!moved && Math.abs(dx) + Math.abs(dy) < 5 * k) return; moved = true;
     if (mode === 'move') { const w = o.x1 - o.x0, h = o.y1 - o.y0, nx = Math.max(0, Math.min(pg.W - w, o.x0 + dx)), ny = Math.max(0, Math.min(pg.H - h, o.y0 + dy)); c.x0 = nx; c.y0 = ny; c.x1 = nx + w; c.y1 = ny + h; }
     else { if (mode.includes('w')) c.x0 = Math.min(o.x0 + dx, o.x1 - 14); if (mode.includes('e')) c.x1 = Math.max(o.x1 + dx, o.x0 + 14); if (mode.includes('n')) c.y0 = Math.min(o.y0 + dy, o.y1 - 14); if (mode.includes('s')) c.y1 = Math.max(o.y1 + dy, o.y0 + 14); }
@@ -2076,9 +2173,9 @@ function cellPointer(e, pi, p, mv) {
   };
   const up = () => {
     cellBusy = false; mv.style.cursor = ''; window.removeEventListener('pointermove', mvH); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+    if (!editM) { S.actCell = null; renderHints(pi); openCell(pi, c); return; }   // 選擇模式:撳一下就打字 / 剔選
     S.actCell = { pi, c };
-    if (!moved && c.kind === 'check' && mode === 'move') { S.actCell = null; renderHints(pi); openCell(pi, c); return; }   // 剔選框:撳一下直接剔
-    if (!moved) { renderHints(pi); if (mode === 'move' && wasAct) openCell(pi, c); return; }   // 第一下 = 揀選,再撳先打字
+    if (!moved) { renderHints(pi); return; }   // 修改模式:撳一下 = 選中,唔輸入
     if (mk) { const sc = pg.vp.scale; if (mode === 'move') { const dx = c.x0 - o.x0, dy = c.y0 - o.y0; mk.x0 += dx; mk.x1 += dx; mk.y0 += dy; mk.y1 += dy; } else { mk.x0 = c.x0; mk.y0 = c.y0; mk.cw = (c.x1 - c.x0) / sc; mk.ch = (c.y1 - c.y0) / sc; } refreshMark(mk).then(record); }
     renderHints(pi);
   };
@@ -2103,8 +2200,9 @@ async function gotoCell(m, dir) {
   const n = k + dir; if (n < 0 || n >= all.length) return;
   await openCell(all[n].pi, all[n].c);
 }
-function setTool(t) { S.tool = t; document.body.classList.toggle('handtool', t === 'hand'); $('#tool-type').classList.toggle('on', t !== 'hand'); $('#tool-hand').classList.toggle('on', t === 'hand'); if (t === 'hand') { if (S.paint) stopPaint(); setPending(null); if (editMk) commitEdit(); S.actCell = null; if (S.selMark) selectMark(null); S.pages.forEach((_, i) => renderHints(i)); } }
-$('#tool-type').addEventListener('click', () => setTool('type')); $('#tool-hand').addEventListener('click', () => setTool('hand'));
+function setTool(t) { S.tool = t; document.body.classList.toggle('handtool', t === 'hand'); document.body.classList.toggle('filltool', t === 'fill'); $('#tool-fill').classList.toggle('on', t === 'fill'); if (t !== 'fill') S.hov = null; $('#tool-hand').classList.toggle('on', t === 'hand'); $('#an-type').classList.toggle('on', t !== 'hand'); $('#an-hand').classList.toggle('on', t === 'hand'); if (t === 'hand') { if (S.paint) stopPaint(); setPending(null); if (editMk) commitEdit(); S.actCell = null; if (S.selMark) selectMark(null); } if (t !== 'edit') S.actCell = null; S.pages.forEach((_, i) => renderHints(i)); }
+$('#tool-hand').addEventListener('click', () => setTool('hand')); $('#tool-fill').addEventListener('click', () => { setTool('fill'); const pg = S.pages[S.cur || 0]; if (pg) setTimeout(() => { try { A.pageCells(pg, true); } catch (e) { /* 忽略 */ } }, 30); });
+$('#an-type').addEventListener('click', () => setTool('type')); $('#an-hand').addEventListener('click', () => setTool('hand'));
 let lineP1 = null, lineGhost = null;
 function clearLineGhost() { if (lineGhost) { lineGhost.remove(); lineGhost = null; } lineP1 = null; }
 function snapLine(a, p, e) { let dx = p.x - a.x, dy = p.y - a.y; const ang = Math.atan2(dy, dx) * 180 / Math.PI, n = Math.round(ang / (e.shiftKey ? 15 : 45)) * (e.shiftKey ? 15 : 45); if (e.shiftKey || Math.abs(ang - n) < 3) { const L = Math.hypot(dx, dy); dx = L * Math.cos(n * Math.PI / 180); dy = L * Math.sin(n * Math.PI / 180); } return { x: a.x + dx, y: a.y + dy }; }
@@ -2119,6 +2217,27 @@ let lastShapeClick = null;
 function bindMarkLayer(mv, pi) {
   const sq1 = (a, p, e) => { if (!(e.altKey || e.ctrlKey)) return p; const dx = p.x - a.x, dy = p.y - a.y, n = Math.max(Math.abs(dx), Math.abs(dy)); return { x: a.x + (dx < 0 ? -n : n), y: a.y + (dy < 0 ? -n : n) }; };   // 按住 Option/Ctrl = 1:1
   let drag = null, ghost = null, pan = null;
+  /* 填寫模式:行近可能係輸入格嘅位置 → 自動顯示;撳 = 輸入;附近冇 = 唔做嘢 */
+  const nearCell = (p, k) => {
+    const pg = S.pages[pi]; let cs = []; try { cs = A.pageCells(pg, true); } catch (x) { cs = []; }
+    const M = 14 * k; let best = null, bd = 1e9;
+    for (const c of cs) {
+      if (markInCell(pi, c)) continue;
+      const dx = Math.max(c.x0 - p.x, 0, p.x - c.x1), dy = Math.max(c.y0 - p.y, 0, p.y - c.y1), d = Math.hypot(dx, dy); if (d > M) continue;
+      const sc = d === 0 ? (c.x1 - c.x0) * (c.y1 - c.y0) / (k * k) / 1e6 : d + 1;   // 喺格入面:揀最細嗰個;格外:揀最近
+      if (sc < bd) { bd = sc; best = c; }
+    }
+    return best;
+  };
+  let hovRaf = 0;
+  mv.addEventListener('pointermove', (e) => {
+    if (S.tool !== 'fill' || !S.mkMode || pending || editNode || drag || pan || cellBusy || e.target.closest('.mk') || e.buttons) { if (S.hov) { const o = S.hov.pi; S.hov = null; renderHints(o); } return; }
+    if (hovRaf) return; const cx = e.clientX, cy = e.clientY;
+    hovRaf = requestAnimationFrame(() => { hovRaf = 0; if (S.tool !== 'fill') return; const pg = S.pages[pi], r = mv.getBoundingClientRect(), k = pg.W / r.width, c = nearCell({ x: (cx - r.left) * k, y: (cy - r.top) * k }, k), cur = S.hov && S.hov.pi === pi ? S.hov.c : null;
+      mv.style.cursor = c ? 'text' : 'crosshair'; if (c === cur && (c || !S.hov)) return; const old = S.hov; S.hov = c ? { pi, c } : null; if (old && old.pi !== pi) renderHints(old.pi); renderHints(pi); });
+  });
+  mv.addEventListener('pointerleave', () => { if (S.hov) { const o = S.hov.pi; S.hov = null; renderHints(o); } });
+  mv.addEventListener('contextmenu', (e) => { if (!S.mkMode || S.tool !== 'edit' || S.annot || pending || e.target.closest('.mk')) return; const pg = S.pages[pi], r = mv.getBoundingClientRect(), k = pg.W / r.width, c = A.pageCells(pg).length ? cellAt(pg, { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k }, k) : null; if (!c) return; e.preventDefault(); delCell(pi, c); });
   /* 手掣:只拖動頁面;偵測格隱藏,唔入字 */
   mv.addEventListener('pointerdown', (e) => {
     if (S.tool !== 'hand' || !S.mkMode || pending || e.button !== 0) return;
@@ -2136,7 +2255,7 @@ function bindMarkLayer(mv, pi) {
   };
   mv.addEventListener('pointermove', (e) => {   // 游標提示:四角 = 斜拉箭咀;揀咗嘅格 = 移動十字
     if (cellBusy || drag || pan) return;
-    if (!S.mkMode || pending || S.tool === 'hand' || e.target.closest('.mk') || editNode) { mv.style.cursor = ''; return; }
+    if (!S.mkMode || pending || S.tool === 'hand' || S.tool === 'fill' || e.target.closest('.mk') || editNode) { mv.style.cursor = ''; return; }
     const pg = S.pages[pi], r = mv.getBoundingClientRect(), k = pg.W / r.width, hit = cellHit(pi, { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k }, k);
     mv.style.cursor = !hit ? 'default' : hit.mode !== 'move' ? CUR[hit.mode] : (S.actCell && S.actCell.c === hit.c ? 'move' : 'default');
   });
@@ -2162,6 +2281,20 @@ function bindMarkLayer(mv, pi) {
     if (pending) { e.preventDefault(); drag = { type: 'create', start: p, r }; ghost = el('div', 'mk-ghost'); mv.append(ghost); mv.setPointerCapture(e.pointerId); return; }
     const me = e.target.closest('.mk');
     if (!me) {
+      if (S.tool === 'fill' && !e.shiftKey && e.button === 0) {
+        e.preventDefault(); const k = pg.W / r.width, c = nearCell(p, k), st = p;
+        selectMark(null); if (S.actCell) S.actCell = null;   // 撳空白位置 / 撳格:取消選取所有物件
+        let gh = null, last = p;
+        const mvH = (ev) => { if (c) return; last = pt(ev, r, pg); if (!gh && Math.hypot(last.x - st.x, last.y - st.y) > 6 * k) { gh = el('div', 'mk-ghost'); mv.append(gh); }
+          if (gh) Object.assign(gh.style, { left: (Math.min(st.x, last.x) / pg.W * 100) + '%', top: (Math.min(st.y, last.y) / pg.H * 100) + '%', width: (Math.abs(last.x - st.x) / pg.W * 100) + '%', height: (Math.abs(last.y - st.y) / pg.H * 100) + '%' }); };
+        const up = (ev) => { window.removeEventListener('pointerup', up); window.removeEventListener('pointermove', mvH); if (gh) { gh.remove(); gh = null; }
+          const q = pt(ev, r, pg), far = Math.hypot(q.x - st.x, q.y - st.y) > 8 * k;
+          S.hov = null; renderHints(pi);
+          if (c) { if (!far) openCell(pi, c); return; }
+          if (!far) return;   // 單撳空白位置:只係取消選取
+          pending = textTpl({ ...defText(), text: '', fs: 12, bc: '', field: true }); placePending(pi, st, q); };
+        window.addEventListener('pointerup', up); window.addEventListener('pointermove', mvH); return;
+      }
       e.preventDefault(); const k = pg.W / r.width, hit = e.shiftKey ? null : cellHit(pi, p, k);
       if (hit) { selectMark(null); cellPointer(e, pi, p, mv); return; }
       const base = e.shiftKey ? (S.multi.length ? [...S.multi] : S.selMark ? [S.selMark] : []) : []; if (!e.shiftKey) selectMark(null); if (S.actCell) { S.actCell = null; renderHints(pi); }
@@ -2282,7 +2415,7 @@ async function placePending(pi, p, q) {
   if (box || m.field || m.box) {
     if (m.kind === 'shape') Object.assign(m, { x0: box.x0, y0: box.y0, x1: Math.max(box.x1, box.x0 + 12), y1: Math.max(box.y1, box.y0 + 12) });
     else if (m.kind === 'img') { const w = Math.max(20, box.x1 - box.x0); Object.assign(m, { x0: box.x0, x1: box.x0 + w, y0: box.y0, y1: box.y0 + w / 3 }); }
-    else if (m.field || m.box) { const sc = pg.vp.scale; const wPt = box && box.x1 - box.x0 > 12 ? (box.x1 - box.x0) / sc : (m.field ? 140 : 170), hPt = m.field ? Math.round(m.fs * 1.5 + 4) : (box && box.y1 - box.y0 > 12 ? (box.y1 - box.y0) / sc : 80); m.cw = wPt; m.ch = hPt; if (box && box.x1 - box.x0 > 12) m.x0 = box.x0; if (box && box.y1 - box.y0 > 12 && m.box) m.y0 = box.y0; else if (box && m.field) m.y0 = box.y0; }
+    else if (m.field || m.box) { const sc = pg.vp.scale; const wPt = box && box.x1 - box.x0 > 12 ? (box.x1 - box.x0) / sc : (m.field ? 140 : 170), hPt = m.field ? (box && box.y1 - box.y0 > 12 ? (box.y1 - box.y0) / sc : Math.round(m.fs * 1.5 + 4)) : (box && box.y1 - box.y0 > 12 ? (box.y1 - box.y0) / sc : 80); if (m.field && box && box.y1 - box.y0 > 12) m.fs = Math.max(6, Math.min(120, Math.round((hPt - 4) / 1.5))); /* 文字欄:字體跟拖出嚟嘅高度,高度唔會再自動變 */ m.cw = wPt; m.ch = hPt; if (box && box.x1 - box.x0 > 12) m.x0 = box.x0; if (box && box.y1 - box.y0 > 12 && m.box) m.y0 = box.y0; else if (box && m.field) m.y0 = box.y0; }
     else { m.fs = Math.max(6, Math.min(120, Math.round((box.y1 - box.y0) / pg.vp.scale / (m.bc ? 2.9 : 1.7)))); m.x0 = box.x0; m.y0 = box.y0; }
   }
   S.marks.push(m); await refreshMark(m);
@@ -2291,11 +2424,18 @@ async function placePending(pi, p, q) {
   if (m.kind === 'text' && m.text === '請輸入文字') startEdit(m, true); else if (m.field || m.box) startEdit(m);
 }
 const MU_SET = { hl: { color: '#ffe600' }, ul: { color: '#d11a2a', lw: 1.5, ls: 'solid' }, st: { color: '#d11a2a', lw: 1.5, ls: 'solid' } };
-function syncMuBtns() { for (const k of ['hl', 'ul', 'st']) $('#mu-' + k).classList.toggle('on', !!(pending && pending.kind === 'mu' && pending.mu === k)); }
+function syncToolBtns() {   // 已揀好嘅放置工具:掣有底色
+  const p = pending, tx = p && p.kind === 'text';
+  const set = (el, on) => el && el.classList.toggle('on', !!on);
+  set($('#an-area'), p && p.area); set($('#an-field'), tx && p.field); set($('#an-box'), tx && p.box);
+  set($('#mc-text'), tx && !p.field && !p.box && !p.stamp); set($('#mc-shape').nextElementSibling, p && p.kind === 'shape' && !p.area);
+  set($('#mc-stamp').nextElementSibling, tx && p.stamp); set($('#mc-sigmenu'), p && p.kind === 'img');
+}
+function syncMuBtns() { syncToolBtns(); for (const k of ['hl', 'ul', 'st']) $('#mu-' + k).classList.toggle('on', !!(pending && pending.kind === 'mu' && pending.mu === k)); }
 for (const k of ['hl', 'ul', 'st']) $('#mu-' + k).addEventListener('click', () => { if (pending && pending.kind === 'mu' && pending.mu === k) setPending(null); else setPending({ kind: 'mu', mu: k, ...MU_SET[k] }); });
 function setPending(t) {
   pending = t; clearLineGhost(); syncMuBtns(); if (!t || t.kind !== 'mu') for (const g of S.pages) if (g.mv) g.mv.style.cursor = '';   // (手模式下揀文字標記:唔轉返選擇模式)
-  { const on = !!(t && t.kind === 'mu'); $('#mu-tool').hidden = !on; if (on) { setColorSel($('#mu-col'), t.color); $('#mu-lw').value = String(t.lw || 1.5); setLsIcon($('#mu-ls'), t.ls); for (const x of document.querySelectorAll('#mu-tool [data-mu="line"]')) x.hidden = t.mu === 'hl'; } } if (t && t.kind !== 'mu' && S.tool === 'hand') setTool('type'); for (const pg of S.pages) pg.mv && pg.mv.classList.toggle('place', !!t);
+  { const on = !!(t && t.kind === 'mu'); $('#mu-tool').hidden = !on; if (on) { setColorSel($('#mu-col'), t.color); $('#mu-lw').value = String(t.lw || 1.5); setLsIcon($('#mu-ls'), t.ls); for (const x of document.querySelectorAll('#mu-tool [data-mu="line"]')) x.hidden = t.mu === 'hl'; } } if (t && t.kind !== 'mu' && S.tool === 'hand') setTool(S.annot ? 'type' : 'fill'); for (const pg of S.pages) pg.mv && pg.mv.classList.toggle('place', !!t);
   $('#mc-tip').textContent = t ? (t.kind === 'mu' ? '喺文字上面拖過就標記(Esc 或再撳掣取消)' : '已揀好:喺頁面撳一下放置,或者拖拉決定大細(Esc 取消)') : '';
 }
 S.hooks.clearMark = () => { if (S.selMark) { S.selMark = null; $('#mk-sec').hidden = true; $('#editor').hidden = false; renderAllMarks(); } };
@@ -2345,10 +2485,11 @@ S.hooks.page = (pg, wrap, i) => {
 
 /* 工具列 */
 for (const tab of document.querySelectorAll('.tab:not(.stab)')) tab.addEventListener('click', () => {
-  const nm = tab.dataset.tab, on = nm === 'content' || nm === 'annot'; S.annot = nm === 'annot'; setPending(null); if (nm === 'annot') setTool('hand'); else if (nm === 'content') setTool('type'); S.mkMode = on; document.body.classList.toggle('mkmode', on); if (S.updateStatus) S.updateStatus(); else if (S.api && S.api.updateStatus) S.api.updateStatus();
+  const nm = tab.dataset.tab, on = nm === 'content' || nm === 'annot'; S.annot = nm === 'annot'; setPending(null); if (nm === 'annot') setTool('hand'); else if (nm === 'content') setTool('fill'); S.mkMode = on; document.body.classList.toggle('mkmode', on); if (S.updateStatus) S.updateStatus(); else if (S.api && S.api.updateStatus) S.api.updateStatus();
   if (!on) { setPending(null); if (S.selMark) selectMark(null); S.actCell = null; }
   if (S.hooks.showHints) S.hooks.showHints();
 });
+$('#an-area').addEventListener('click', () => setPending(pending && pending.area ? null : { kind: 'shape', ...defShape(), shape: 'rect', color: '', fillc: '#ffe600', op: 0.4, lw: 0, area: true }));
 $('#an-field').addEventListener('click', () => setPending(pending && pending.field ? null : textTpl({ ...defText(), text: '', fs: 12, bc: '', field: true })));
 $('#an-box').addEventListener('click', () => setPending(pending && pending.box ? null : textTpl({ ...defText(), text: '', fs: 12, bc: '#111111', bw: 1, box: true })));
 const textTpl = (o) => ({ kind: 'text', text: '請輸入文字', fs: 14, color: '#111111', bold: false, bc: '', bw: 2, ...o });
@@ -2477,7 +2618,7 @@ S.hooks.extractEdit = async (buf) => {
 const _rs0 = S.hooks.reset; S.hooks.reset = () => { _rs0(); histReset(); };
 S.hooks.restoreMarks = async (ed) => {
   S.marks.length = 0; let mx = 0;
-  for (const o of ed.marks) { if (!S.pages[o.page]) continue; S.marks.push(o); mx = Math.max(mx, o.id || 0); }
+  for (const o of ed.marks) { if (!S.pages[o.page]) continue; if (o.fa) { o.op = o.fa; delete o.fa; } S.marks.push(o); mx = Math.max(mx, o.id || 0); }
   mkSeq = mx + 1; for (const m of S.marks) { try { await refreshMark(m); } catch (e) { console.warn('還原失敗', e); } }
   renderAllMarks(); updateExportState(); histReset();
 };
@@ -2493,8 +2634,8 @@ S.hooks.drawMarks = async (pdf) => {
     const img = await pdf.embedPng(b64bytes(m.url));
     if (m.rot) {   // 圖案旋轉:以中心點為軸
       const phi = a.rot - m.rot, r = phi * Math.PI / 180, [cx, cy] = pg.vp.convertToPdfPoint((m.x0 + m.x1) / 2, (m.y0 + m.y1) / 2);
-      page.drawImage(img, { x: cx - (a.w / 2 * Math.cos(r) - a.h / 2 * Math.sin(r)), y: cy - (a.w / 2 * Math.sin(r) + a.h / 2 * Math.cos(r)), width: a.w, height: a.h, rotate: degrees(phi) });
-    } else page.drawImage(img, { x: a.x, y: a.y, width: a.w, height: a.h, rotate: degrees(a.rot) });
+      page.drawImage(img, { x: cx - (a.w / 2 * Math.cos(r) - a.h / 2 * Math.sin(r)), y: cy - (a.w / 2 * Math.sin(r) + a.h / 2 * Math.cos(r)), width: a.w, height: a.h, rotate: degrees(phi), opacity: m.op || 1 });
+    } else page.drawImage(img, { x: a.x, y: a.y, width: a.w, height: a.h, rotate: degrees(a.rot), opacity: m.op || 1 });
   }
 };
 
@@ -2867,6 +3008,17 @@ $('#new-kind').addEventListener('change', () => { document.body.classList.remove
   rz.addEventListener('pointerup', end); rz.addEventListener('pointercancel', end);
   rz.addEventListener('dblclick', () => { set(MIN); });
   op.addEventListener('click', () => { w.style.setProperty('--ctxw', MIN + 'px'); off(false); }); }
+/* 左邊頁面欄:拖拉調整闊度;拉到最窄就收埋,用左上角掣重新打開 */
+{ const w = document.querySelector('.work'), rz = document.getElementById('railrz'), op = document.getElementById('railopen'), MIN = 96, MAX = 360, OFF = 70, DEF = 148;
+  const set = (v) => { v = Math.max(MIN, Math.min(MAX, Math.round(v))); w.style.setProperty('--rail', v + 'px'); try { localStorage.setItem('pfrailw', String(v)); } catch (e) { /* 忽略 */ } return v; };
+  const off = (on) => { w.classList.toggle('railoff', on); if (on) w.style.removeProperty('--rail'); else { let v = DEF; try { v = +localStorage.getItem('pfrailw') || DEF; } catch (e) { /* 忽略 */ } w.style.setProperty('--rail', Math.max(MIN, Math.min(MAX, v)) + 'px'); } try { localStorage.setItem('pfrailoff', on ? '1' : ''); } catch (e) { /* 忽略 */ } };
+  try { const v = +localStorage.getItem('pfrailw'); if (localStorage.getItem('pfrailoff')) w.classList.add('railoff'); else if (v >= MIN && v <= MAX) w.style.setProperty('--rail', v + 'px'); } catch (e) { /* 忽略 */ }
+  rz.addEventListener('pointerdown', (e) => { e.preventDefault(); rz.setPointerCapture(e.pointerId); rz.classList.add('on'); document.body.style.userSelect = 'none'; });
+  rz.addEventListener('pointermove', (e) => { if (!rz.classList.contains('on')) return; const v = e.clientX - w.getBoundingClientRect().left; if (v < OFF) { off(true); rz.classList.remove('on'); document.body.style.userSelect = ''; return; } set(v); });
+  const end = () => { if (!rz.classList.contains('on')) return; rz.classList.remove('on'); document.body.style.userSelect = ''; };
+  rz.addEventListener('pointerup', end); rz.addEventListener('pointercancel', end);
+  rz.addEventListener('dblclick', () => { set(DEF); });
+  op.addEventListener('click', () => off(false)); }
 </script>
 
 <script>if('serviceWorker' in navigator && location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script></body></html>
