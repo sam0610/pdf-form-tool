@@ -1,13 +1,13 @@
 {
-  "name": "PDF 填表轉換",
-  "short_name": "PDF填表",
+  "name": "PDF編輯器",
+  "short_name": "PDF編輯器",
   "description": "PDF 填表、簽署、掃描檔轉可填表單(全部喺本機運行)",
   "lang": "zh-HK",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2f5fd0",
+  "theme_color": "#0a8f8f",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2f5fd0"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"><title>PDF 填表轉換</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a8f8f"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"><title>PDF編輯器</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+TC:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -58,7 +58,7 @@ button { cursor: pointer; }
 /* ---------- 標題列 ---------- */
 .appbar { display: flex; align-items: center; gap: 10px 14px; padding-block: 8px; background: var(--bar); color: var(--bar-ink); border-bottom: 1px solid var(--bar-line); flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.logo { flex: none; width: 28px; height: 28px; border-radius: 6px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.logo { flex: none; width: 28px; height: 28px; display: grid; place-items: center; } .logo svg { display: block; }
 .brand b { font-size: 15px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
 .ver { font-family: var(--mono); font-size: 11px; font-weight: 500; color: color-mix(in srgb, var(--bar-ink) 70%, transparent); border: 1px solid var(--bar-line); border-radius: 4px; padding: 0 6px; }
 .docname { margin-left: 10px; padding-left: 14px; border-left: 1px solid var(--bar-line); min-width: 0; display: flex; align-items: baseline; gap: 8px; }
@@ -83,6 +83,7 @@ button { cursor: pointer; }
 .tabbar { display: flex; align-items: flex-end; gap: 2px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .tab { height: var(--tabh); box-sizing: border-box; border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 8px 14px 6px; margin-bottom: -1px; font-weight: 500; color: var(--muted); white-space: nowrap; flex: none; }
 .tab:hover { color: var(--ink); }
+.tab:disabled { opacity: .35; cursor: not-allowed; } .tab:disabled:hover { color: var(--muted); }
 .tab[aria-selected="true"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
 .tpanel { display: flex; align-items: stretch; gap: 0; padding-block: 6px; background: var(--panel-2); overflow-x: auto; min-height: 66px; }
 .grp { display: flex; flex-direction: column; justify-content: space-between; gap: 4px; padding: 0 14px; border-right: 1px solid var(--line); flex: none; }
@@ -136,9 +137,19 @@ select, .inl select { padding: 4px 8px; border: 1px solid var(--line); border-ra
 .home .hsec { flex: 1; height: 48px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
 .home .hsec:hover { border-color: var(--accent); }
 .home .hr2 { flex: 1 1 360px; min-width: 0; box-sizing: border-box; padding: 28px 28px; display: flex; flex-direction: column; gap: 14px; background: var(--bg); min-height: 100%; }
-.home .hhd { display: flex; align-items: center; gap: 10px; } .home .hhd b { flex: 1; font-size: 16px; font-weight: 600; }
+.home .hhd { display: flex; align-items: center; gap: 10px; } 
 .home .hsr { display: flex; align-items: center; gap: 8px; width: 220px; max-width: 100%; height: 36px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 0 10px; color: var(--muted); }
 .home .hsr input { flex: 1; min-width: 0; border: 0; background: transparent; outline: 0; color: var(--ink); font-size: 13px; }
+.work.homeview { grid-template-columns: 0 minmax(0, 1fr) 0; }
+.work.homeview > .rail, .work.homeview > .ctxbar, .work.homeview > .ctxrz, .work.homeview > .railrz, .work.homeview .railopen, .work.homeview .ctxopen { display: none !important; }
+.home .hseg { display: inline-flex; flex: 1; gap: 4px; } .home .hseg button { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; }
+.home .hseg button.on { background: var(--panel); border-color: var(--line); color: var(--ink); font-weight: 600; }
+.home .hlocbox { display: flex; flex-direction: column; gap: 12px; }
+.home .hchips { display: flex; flex-wrap: wrap; gap: 8px; }
+.home .hchip { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 4px 0 12px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); color: var(--ink); font-size: 13px; cursor: pointer; max-width: 100%; } .home .hchip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+.home .hchip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.home .hchip .hb { width: 26px; height: 26px; border-radius: 13px; }
+.home .hchip.add { padding: 0 14px 0 12px; border-style: dashed; color: var(--muted); }
 .home .hlist { display: flex; flex-direction: column; gap: 8px; }
 .home .hr { display: flex; align-items: center; gap: 14px; padding: 8px 6px 8px 12px; min-height: 76px; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
 .home .hr:hover, .home .hr:focus-visible { border-color: var(--accent); }
@@ -574,8 +585,8 @@ body.fpainting .wf { display: none; }
 <div id="app">
   <header class="appbar gut">
     <div class="brand">
-      <span class="logo" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3M5.5 8h5M5.5 10.5h5"/></svg></span>
-      <b>PDF 填表轉換</b><span class="ver" id="ver" title="軟件版本">v3.22.0</span>
+      <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" fill="#0a8f8f"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" fill="#0a8f8f">PDF</text></g></g></svg></span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.24.0</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name">未開啟文件</b><small id="dn-meta"></small></div>
@@ -1787,8 +1798,8 @@ async function pickOpen() {   // Chrome / Edge:用檔案控制代碼開,之後�
 
 /* ------------------------------------------------------------------ 最近開啟(首頁):檔案控制代碼存喺瀏覽器 IndexedDB */
 const REC = { db: null, list: [] };
-function recDb() { return REC.db || (REC.db = new Promise((res, rej) => { try { const q = indexedDB.open('pdfform-recent', 1); q.onupgradeneeded = () => q.result.createObjectStore('r', { keyPath: 'id', autoIncrement: true }); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); } catch (e) { rej(e); } })); }
-async function recTx(mode, fn) { const db = await recDb(); return new Promise((res, rej) => { const tx = db.transaction('r', mode), st = tx.objectStore('r'); const r = fn(st); tx.oncomplete = () => res(r && r.result !== undefined ? r.result : undefined); tx.onerror = () => rej(tx.error); }); }
+function recDb() { return REC.db || (REC.db = new Promise((res, rej) => { try { const q = indexedDB.open('pdfform-recent', 2); q.onupgradeneeded = () => { for (const n of ['r', 'loc']) if (!q.result.objectStoreNames.contains(n)) q.result.createObjectStore(n, { keyPath: 'id', autoIncrement: true }); }; q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); } catch (e) { rej(e); } })); }
+async function recTx(mode, fn, nm) { const db = await recDb(); nm = nm || 'r'; return new Promise((res, rej) => { const tx = db.transaction(nm, mode), st = tx.objectStore(nm); const r = fn(st); tx.oncomplete = () => res(r && r.result !== undefined ? r.result : undefined); tx.onerror = () => rej(tx.error); }); }
 async function recLoad() { try { const all = await recTx('readonly', (st) => st.getAll()); REC.list = (all || []).sort((a, b) => b.t - a.t); } catch (e) { REC.list = []; } return REC.list; }
 function recThumb() {
   try { const cv = S.pages[0] && S.pages[0].canvas; if (!cv || !cv.width) return null; const w = 96, h = Math.round(w * cv.height / cv.width), c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.drawImage(cv, 0, 0, w, h); return c.toDataURL('image/jpeg', 0.7); } catch (e) { return null; }
@@ -1827,7 +1838,7 @@ function homeRows(box) {
     const rb = el('button', 'hb'); rb.type = 'button'; rb.setAttribute('aria-label', '由清單移除'); rb.title = '由清單移除'; rb.innerHTML = hsvg('x', 16);
     li.append(th, mid, pb, rb);
     const go = async () => {
-      try { if (r.h.requestPermission && (await r.h.requestPermission({ mode: 'readwrite' })) !== 'granted' && (await r.h.requestPermission({ mode: 'read' })) !== 'granted') { toast('未獲批准讀取呢個檔案'); return; } await openFile(await r.h.getFile(), r.h); }
+      try { if (!(await ensureRead(r.h))) { toast('未獲批准讀取呢個檔案'); return; } await openFile(await r.h.getFile(), r.h); }
       catch (e) { toast('開唔到呢個檔案(可能已被移動或刪除)'); }
     };
     li.addEventListener('click', (e) => { if (e.target.closest('.hb')) return; go(); }); li.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === li) go(); });
@@ -1836,8 +1847,45 @@ function homeRows(box) {
     box.append(li);
   }
 }
+async function locRows(box) {
+  box.textContent = ''; const q = (REC.q || '').trim().toLowerCase();
+  const chips = el('div', 'hchips');
+  for (const l of REC.locs || []) {
+    const c = el('div', 'hchip' + (REC.loc === l.id ? ' on' : '')); c.tabIndex = 0; c.setAttribute('role', 'button'); c.title = l.name;
+    c.innerHTML = hsvg('folder', 16); c.append(el('span', '', l.name));
+    const x = el('button', 'hb'); x.type = 'button'; x.setAttribute('aria-label', '移除呢個位置'); x.title = '移除呢個位置'; x.innerHTML = hsvg('x', 14);
+    x.addEventListener('click', async (e) => { e.stopPropagation(); try { await recTx('readwrite', (st) => st.delete(l.id), 'loc'); } catch (e2) { /* ignore */ } if (REC.loc === l.id) REC.loc = null; await locLoad(); locRows(box); });
+    c.append(x); const pick = () => { REC.loc = l.id; locRows(box); }; c.addEventListener('click', pick); c.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === c) pick(); });
+    chips.append(c);
+  }
+  const ab = el('button', 'hchip add'); ab.type = 'button'; ab.title = '加入常用位置(揀一個放 PDF 嘅資料夾)'; ab.setAttribute('aria-label', '加入常用位置'); ab.innerHTML = hsvg('blank', 16).replace(HI.blank, '<path d="M12 5v14M5 12h14"/>') + '<span>加入位置</span>';
+  ab.addEventListener('click', async () => { if (!window.showDirectoryPicker) { toast('呢個瀏覽器唔支援揀資料夾(請用 Chrome / Edge)', 3500); return; } try { const d = await window.showDirectoryPicker({ mode: 'read' }); await recTx('readwrite', (st) => st.add({ h: d, name: d.name }), 'loc'); await locLoad(); REC.loc = (REC.locs[REC.locs.length - 1] || {}).id; locRows(box); } catch (e) { /* 取消 */ } });
+  chips.append(ab); box.append(chips);
+  const body = el('div', 'hlist'); box.append(body);
+  const cur = (REC.locs || []).find((l) => l.id === REC.loc);
+  if (!cur) { body.append(el('p', 'hnote', (REC.locs || []).length ? '揀一個位置,就會列出入面嘅 PDF。' : '撳「加入位置」揀你平時放 PDF 嘅資料夾(例如桌面、下載、公司共用夾),之後可以喺度直接揀檔案開。')); return; }
+  body.append(el('p', 'hnote', '讀取中…'));
+  const token = REC.tok = (REC.tok || 0) + 1;
+  try {
+    if (!(await ensureRead(cur.h))) { body.textContent = ''; body.append(el('p', 'hnote', '未獲批准讀取呢個資料夾,撳一下位置再試。')); return; }
+    const files = []; for await (const [nm, h] of cur.h.entries()) { if (h.kind === 'file' && /\.pdf$/i.test(nm)) { try { const f = await h.getFile(); files.push({ h, name: nm, t: f.lastModified, size: f.size }); } catch (e) { /* 略過 */ } } if (files.length >= 500) break; }
+    if (token !== REC.tok) return; files.sort((a, b) => b.t - a.t); body.textContent = '';
+    const list = files.filter((f) => !q || f.name.toLowerCase().includes(q));
+    if (!list.length) { body.append(el('p', 'hnote', files.length ? '冇符合嘅檔案' : '呢個資料夾冇 PDF')); return; }
+    for (const f of list) {
+      const li = el('div', 'hr'); li.tabIndex = 0; li.setAttribute('role', 'button'); li.title = f.name;
+      const th = el('div', 'hth'); th.innerHTML = hsvg('doc', 22); const mid = el('div', 'hm');
+      mid.append(el('div', 'nm', f.name), el('div', 'tm', new Date(f.t).toLocaleDateString('zh-HK') + ' · ' + (f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB')));
+      li.append(th, mid); const go = async () => { try { await openFile(await f.h.getFile(), f.h); } catch (e) { toast('開唔到呢個檔案'); } };
+      li.addEventListener('click', go); li.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); }); body.append(li);
+    }
+  } catch (e) { body.textContent = ''; body.append(el('p', 'hnote', '讀取唔到呢個資料夾(可能已被移動或刪除)。')); }
+}
 function syncHome() {
-  const hm = homeEl(); if (!hm) return; const show = !S.pages.length; hm.hidden = !show; if (!show) return;
+  const hm = homeEl(); if (!hm) return; const show = !S.pages.length; hm.hidden = !show; document.querySelector('.work').classList.toggle('homeview', show);
+  for (const t of document.querySelectorAll('.tab:not(.stab)')) if (t.dataset.tab !== 'file') t.disabled = show;
+  if (show && $('#tab-file').getAttribute('aria-selected') !== 'true') setTab('file');
+  if (!show) return;
   const left = el('div', 'hl'), dz = el('div', 'hdz');
   dz.innerHTML = '<div class="hcir">' + hsvg('up', 34) + '</div><div class="hdt">將 PDF 拖到呢度<br><small>或者</small></div>';
   const ob = el('button', 'hopen'); ob.type = 'button'; ob.innerHTML = hsvg('folder', 20) + '<span>開啟檔案</span>'; ob.addEventListener('click', pickOpen); dz.append(ob);
@@ -1846,13 +1894,18 @@ function syncHome() {
   const sb = el('button', 'hsec'); sb.type = 'button'; sb.innerHTML = hsvg('form', 20) + '<span>載入範例表格</span>';
   sb.addEventListener('click', async () => { try { const smp = await makeSample(); await newDocTab(() => loadPdf(smp, '範例表格.pdf', true)); } catch (e) { console.error(e); } });
   row.append(nb, sb); left.append(dz, row);
-  const right = el('div', 'hr2'), head = el('div', 'hhd'); head.append(el('b', '', '最近開啟'));
+  const right = el('div', 'hr2'), head = el('div', 'hhd'), view = REC.view || 'recent';
+  const seg = el('div', 'hseg'); seg.setAttribute('role', 'group');
+  for (const [k, lab, ic] of [['recent', '最近開啟', 'doc'], ['loc', '常用位置', 'folder']]) { const b = el('button', view === k ? 'on' : ''); b.type = 'button'; b.innerHTML = hsvg(ic, 16) + '<span>' + lab + '</span>'; b.addEventListener('click', () => { REC.view = k; syncHome(); }); seg.append(b); }
+  head.append(seg);
   const sw = el('label', 'hsr'); sw.innerHTML = hsvg('search', 16); const qi = document.createElement('input'); qi.type = 'search'; qi.placeholder = '搜尋檔名'; qi.setAttribute('aria-label', '搜尋檔名'); qi.value = REC.q || ''; sw.append(qi); head.append(sw);
-  const box = el('div', 'hlist'); qi.addEventListener('input', () => { REC.q = qi.value; homeRows(box); });
-  homeRows(box); right.append(head, box);
-  hm.textContent = ''; hm.append(left, right);
+  const box = el('div', view === 'loc' ? 'hlocbox' : 'hlist'); qi.addEventListener('input', () => { REC.q = qi.value; if (view === 'loc') locRows(box); else homeRows(box); });
+  if (view === 'loc') locRows(box); else homeRows(box);
+  right.append(head, box); hm.textContent = ''; hm.append(left, right);
 }
-recLoad().then(syncHome);
+async function locLoad() { try { REC.locs = ((await recTx('readonly', (st) => st.getAll(), 'loc')) || []).sort((a, b) => a.id - b.id); } catch (e) { REC.locs = []; } return REC.locs; }
+async function ensureRead(h) { try { if (!h.queryPermission) return true; if ((await h.queryPermission({ mode: 'read' })) === 'granted') return true; return (await h.requestPermission({ mode: 'read' })) === 'granted'; } catch (e) { return false; } }
+Promise.all([recLoad(), locLoad()]).then(syncHome);
 $('#open').addEventListener('click', pickOpen);
 $('#file').addEventListener('change', async (e) => { const fs = [...e.target.files]; e.target.value = ''; for (const f of fs) await openFile(f); });
 $('#export').addEventListener('click', () => savePdf(true));
