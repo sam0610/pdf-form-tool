@@ -650,7 +650,7 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" fill="#0a8f8f"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" fill="#0a8f8f">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.58.1</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.59.0</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -1917,6 +1917,9 @@ async function pickOpen() {   // Chrome / Edge:用檔案控制代碼開,之後�
   }
   $('#file').click();
 }
+
+/* 安裝成程式後,喺檔案總管「開啟方式」揀本程式:自動開啟嗰個 PDF(可直接覆蓋原檔) */
+if ('launchQueue' in window) window.launchQueue.setConsumer(async (lp) => { for (const h of (lp && lp.files) || []) { try { await openFile(await h.getFile(), h); } catch (e) { toast('開唔到檔案'); } } });
 
 /* ------------------------------------------------------------------ 最近開啟(首頁):檔案控制代碼存喺瀏覽器 IndexedDB */
 const REC = { db: null, list: [] };
