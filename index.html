@@ -650,7 +650,7 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" fill="#0a8f8f"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" fill="#0a8f8f">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.57.1</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.58.1</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -1193,10 +1193,11 @@ function importWidgets() {
 const wfDirty = () => S.pages.some((p) => (p.wf || []).some((w) => w.dirty)); S.wfDirty = wfDirty;
 
 /* 返去「填寫」:由原有欄位轉出嚟嘅欄位,用輸入框顯示,可以直接填 */
-function fieldInputLayers(on) {
+function fieldInputLayers() {
+  const on = S.tab !== 'add' || document.body.classList.contains('fldlock');   // 編輯欄位閂咗(或唔喺制作表單)= 所有欄位可填
   for (const pg of S.pages) {
     const wrap = pg.ov && pg.ov.parentNode; if (!wrap) continue; const old = wrap.querySelector('.wf.wfx'); if (old) old.remove();
-    const list = on ? pg.fields.filter((f) => f.imported && f.kind !== 'sign') : []; if (!list.length) continue;
+    const list = on ? pg.fields.filter((f) => f.kind !== 'sign') : []; if (!list.length) continue;
     const layer = el('div', 'wf wfx'), ptW = pg.vp.width / pg.vp.scale;
     for (const f of list) {
       let e; const hPt = (f.y1 - f.y0) / pg.vp.scale;
@@ -1212,6 +1213,7 @@ function fieldInputLayers(on) {
     wrap.append(layer);
   }
 }
+{ let lk = document.body.classList.contains('fldlock'); new MutationObserver(() => { const n = document.body.classList.contains('fldlock'); if (n !== lk) { lk = n; fieldInputLayers(); } }).observe(document.body, { attributes: true, attributeFilter: ['class'] }); }
 /* ------------------------------------------------------------------ 載入 PDF */
 async function loadPdf(bytes, name, isSample) {
   setBusy(true, '載入 PDF…'); S.lastLoadOk = false;
@@ -1359,7 +1361,7 @@ $('#mc-fill').addEventListener('click', async () => {
   if (!S.pages[cur].fields.length) return;
   setFill(true); const first = S.pages[cur].ov.querySelector('.fillin'); if (first) first.focus();
 });
-function renderAllOverlays() { S.pages.forEach((_, i) => renderOverlay(i)); }
+function renderAllOverlays() { S.pages.forEach((_, i) => renderOverlay(i)); fieldInputLayers(); }
 function renderList() {
   const ul = $('#list'); ul.textContent = '';
   const fs = allFields(); $('#count').textContent = fs.length;
@@ -1470,6 +1472,7 @@ function bindOverlay(ov, pi) {
   const pill = { d: null, show(pg, bx, txt) { if (!this.d) { this.d = el('div', 'cpill'); ov.append(this.d); } this.d.style.left = bx.x0 / pg.W * 100 + '%'; this.d.style.top = bx.y1 / pg.H * 100 + '%'; this.d.textContent = txt; }, hide() { if (this.d) { this.d.remove(); this.d = null; } } };
   ov.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
+    if (document.body.classList.contains('fldlock') && !S.fill) return;   // 編輯欄位閂咗:唔可以揀、框選
     if (S.fill) {   // 輸入模式:撳格(包括格邊緣)一定focus入面個輸入框
       const fe = e.target.closest('.fld.fill'), inp = fe && fe.querySelector('.fillin');
       if (inp && e.target !== inp) { e.preventDefault(); inp.focus(); }
@@ -1977,8 +1980,8 @@ async function locRows(box) {
     c.append(x); const pick = () => { REC.loc = l.id; locRows(box); }; c.addEventListener('click', pick); c.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === c) pick(); });
     chips.append(c);
   }
-  const ab = el('button', 'hchip add'); ab.type = 'button'; ab.title = '加入常用位置(揀一個放 PDF 嘅資料夾)'; ab.setAttribute('aria-label', '加入常用位置'); ab.innerHTML = hsvg('blank', 16).replace(HI.blank, '<path d="M12 5v14M5 12h14"/>') + '<span>加入位置</span>';
-  ab.addEventListener('click', async () => { if (!window.showDirectoryPicker) { toast('呢個瀏覽器唔支援揀資料夾(請用 Chrome / Edge)', 3500); return; } try { const d = await window.showDirectoryPicker({ mode: 'read' }); await recTx('readwrite', (st) => st.add({ h: d, name: d.name }), 'loc'); await locLoad(); REC.loc = (REC.locs[REC.locs.length - 1] || {}).id; locRows(box); } catch (e) { /* 取消 */ } });
+  const ab = el('button', 'hchip add'); ab.type = 'button'; ab.title = '加入常用位置(揀一個放 PDF 嘅資料夾;Chrome 唔俾揀「下載」、桌面、磁碟根目錄等系統資料夾,請揀入面嘅子資料夾)'; ab.setAttribute('aria-label', '加入常用位置'); ab.innerHTML = hsvg('blank', 16).replace(HI.blank, '<path d="M12 5v14M5 12h14"/>') + '<span>加入位置</span>';
+  ab.addEventListener('click', async () => { if (!window.showDirectoryPicker) { toast('呢個瀏覽器唔支援揀資料夾(請用 Chrome / Edge)', 3500); return; } try { if (!REC.tipDir) { REC.tipDir = 1; toast('提示:唔可以揀「下載」、桌面、磁碟根目錄等系統資料夾,請揀入面嘅子資料夾', 4500); } const d = await window.showDirectoryPicker({ mode: 'read', id: 'favloc', startIn: 'documents' }); await recTx('readwrite', (st) => st.add({ h: d, name: d.name }), 'loc'); await locLoad(); REC.loc = (REC.locs[REC.locs.length - 1] || {}).id; locRows(box); } catch (e) { /* 取消 */ } });
   chips.append(ab); box.append(chips);
   const body = el('div', 'hlist'); box.append(body);
   const cur = (REC.locs || []).find((l) => l.id === REC.loc);
@@ -2044,7 +2047,7 @@ function setTab(name) {
 for (const t of document.querySelectorAll('.tab:not(.stab)')) { const on = t.dataset.tab === name; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; $('#pn-' + t.dataset.tab).hidden = !on; }
   $('#ctabs').hidden = name !== 'add'; if (name !== 'add') setCtTab('fmt');
   if (name === 'add') importWidgets();
-  fieldInputLayers(name !== 'add');
+  S.tab = name; fieldInputLayers();
   if (name !== 'add' && S.fpaint) stopFPaint();
   if (name !== 'add' && S.fill) setFill(false);                     // 離開「制作表單」就退出輸入模式
   if (name !== 'add' && S.mode !== 'select') setMode('select');      // 離開「新增欄位」就返回選取模式
@@ -4315,7 +4318,7 @@ const mSel = $('#m-select'), A = window.__app, selTitle = mSel.title;
 const setLock = (on) => {
   document.body.classList.toggle('fldlock', on); mSel.classList.toggle('on', !on && A.mode === 'select');
   mSel.title = on ? '欄位已鎖定,不能修改(再撳一下解鎖)' : selTitle; mSel.setAttribute('aria-pressed', String(!on && A.mode === 'select'));
-  if (on) { if (A.sel && A.api.select) A.api.select(null); A.api.renderAllOverlays(); }
+  if (on && A.sel && A.api.select) A.api.select(null); A.api.renderAllOverlays();
 };
 mSel.parentElement.addEventListener('click', (e) => {
   if (!e.target.closest('#m-select')) return;
