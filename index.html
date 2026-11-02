@@ -192,7 +192,8 @@ select, .inl select { padding: 4px 8px; border: 1px solid var(--line); border-ra
 .fld[data-k="check"] { --fc: var(--k-check); background: color-mix(in srgb, var(--fc) 16%, transparent); }
 .fld[data-k="sign"] { --fc: var(--k-sign); border-style: dashed; }
 .fld.ghost { pointer-events: none; border-style: dashed; }
-.fld.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--fc); z-index: 3; }
+.fld.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--fc); }
+.fld > .hd, .fld > .fmv, .mk > .hd, .mk > .fmv { z-index: 3; }
 .fld .pv { color: var(--fc); }
 .fld > .hd[data-c="se"] { width: 11px; height: 11px; right: -5px; bottom: -5px; background: var(--fc); border: 2px solid #fff; cursor: nwse-resize; }
 .ftb { position: fixed; z-index: 55; display: flex; align-items: center; gap: 2px; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); max-width: calc(100vw - 16px); overflow-x: auto; }
@@ -239,11 +240,11 @@ body.mkmode .mv { pointer-events: auto; }
 body.mkmode .ov { pointer-events: none; }
 body.mkmode .mk { cursor: default; outline: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent); }
 body.mkmode .mv.place { cursor: crosshair; }
-.mk.sel { outline: 2px solid var(--accent) !important; z-index: 3; }
+.mk.sel { outline: 2px solid var(--accent) !important; }
 .btn[data-def].ok, #mk-brush.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
 body.painting .mv .mk, body.painting .mv { cursor: copy !important; }
 body.mkmode .mk.mu, .mk.mu { pointer-events: none; outline: none !important; cursor: default; }
-.mk.msel { outline: 2px solid var(--accent) !important; background: color-mix(in srgb, var(--accent) 10%, transparent); z-index: 3; }
+.mk.msel { outline: 2px solid var(--accent) !important; background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
 /* ---------- 右側面板 ---------- */
 .side { display: flex; flex-direction: column; min-height: 0; min-width: 0; background: var(--panel); border-left: 1px solid var(--line); padding-right: env(safe-area-inset-right, 0px); }
@@ -650,7 +651,7 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" fill="#0a8f8f"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" fill="#0a8f8f">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.59.0</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.62.1</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -767,6 +768,7 @@ body.fpainting .wf { display: none; }
           <button type="button" id="mk-scolors" class="csw kl" title="線條顏色" aria-label="線條顏色"></button>
           <span class="wbx"><input type="number" id="mk-lw" min="0.25" max="30" step="0.25" inputmode="decimal" title="線條粗細(pt,可手打)" aria-label="線條粗細"><button type="button" class="wdd" id="mk-lw-dd" aria-label="揀粗幼數值"><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span><button type="button" id="mk-lls" class="csw kls" title="線條線款" aria-label="線條線款"></button>
           <button type="button" class="btn ib" data-def="sshp" title="設為預設圖案風格(只限目前文件,重開會重設)" aria-label="設為預設圖案風格(只限目前文件,重開會重設)"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button>
+          <button type="button" class="btn ib" id="mk-fwd1" title="向前移一層" aria-label="向前移一層"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V8M6 13l6-6 6 6M5 3h14"/></svg></button><button type="button" class="btn ib" id="mk-back1" title="向後移一層" aria-label="向後移一層"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v11M6 11l6 6 6-6M5 21h14"/></svg></button>
                   <div id="mk-op-g" class="oprow" title="物件透明度" style="display:flex;align-items:center;gap:8px;width:100%;flex-basis:100%"><span aria-hidden="true" style="font-size:12px;color:var(--muted,#667085)">透明度</span><input type="range" id="mk-op" min="5" max="100" step="5" value="100" style="flex:1;min-width:90px;accent-color:var(--accent,#2f5fd0)" aria-label="物件透明度"><output id="mk-op-v" style="min-width:3em;text-align:right;font-variant-numeric:tabular-nums">100%</output></div>
           </div>
         <div class="cg" data-t="圖案文字" data-mk="shape">
@@ -826,7 +828,7 @@ body.fpainting .wf { display: none; }
           </div>
           <div class="cg" data-t="輸入設定" data-kinds="text"><label class="tgl ib" title="多行輸入"><input type="checkbox" id="e-multi" aria-label="多行輸入"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 11h12a3 3 0 0 1 0 6H9M11 14.5L8.5 17l2.5 2.5"/></svg></label></div>
           <div class="cg" data-t="簽名欄" data-kinds="sign"><span class="cbhint">簽名欄用 Adobe Acrobat 等軟件開啟後,按一下欄位就可以電子簽署。</span></div>
-          <div class="cg"><button type="button" class="btn ib" id="e-brush" title="格式複製:將呢個欄位嘅格式套用到之後撳嘅欄位(Esc 取消)。已用 Shift 揀咗多個欄位時,會即刻將格式統一套用到其餘欄位" aria-label="格式複製"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 3l3 3-9 9-3-3z"/><path d="M9 12c-3 0-4 2-4 4 0 2-1 3-2 4 3 1 7 0 7-4z"/></svg></button><button class="btn ib danger" id="e-del" title="刪除欄位(Delete)" aria-label="刪除欄位"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button></div>
+          <div class="cg"><button type="button" class="btn ib" id="e-fwd1" title="向前移一層" aria-label="向前移一層"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V8M6 13l6-6 6 6M5 3h14"/></svg></button><button type="button" class="btn ib" id="e-back1" title="向後移一層" aria-label="向後移一層"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v11M6 11l6 6 6-6M5 21h14"/></svg></button><button type="button" class="btn ib" id="e-brush" title="格式複製:將呢個欄位嘅格式套用到之後撳嘅欄位(Esc 取消)。已用 Shift 揀咗多個欄位時,會即刻將格式統一套用到其餘欄位" aria-label="格式複製"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 3l3 3-9 9-3-3z"/><path d="M9 12c-3 0-4 2-4 4 0 2-1 3-2 4 3 1 7 0 7-4z"/></svg></button><button class="btn ib danger" id="e-del" title="刪除欄位(Delete)" aria-label="刪除欄位"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button></div>
         </div>
       </div>
     </div>
@@ -1297,7 +1299,7 @@ function place(div, f, pg) {
 function renderOverlay(pi) {
   const pg = S.pages[pi]; pg.ov.textContent = ''; pg.map.clear();
   const ms = multiSet(), rr0 = pg.ov.getBoundingClientRect(), zs0 = rr0.width / (pg.W / pg.vp.scale);
-  const flist = S.fill ? pg.fields.slice().sort((a, b) => (Math.round(a.y0 / 10) - Math.round(b.y0 / 10)) || (a.x0 - b.x0)) : pg.fields;
+  const flist = S.fill ? pg.fields.slice().sort((a, b) => (Math.round(a.y0 / 10) - Math.round(b.y0 / 10)) || (a.x0 - b.x0)) : pg.fields.slice().sort(zs);
   for (const f of flist) {
     const d = el('div', 'fld ' + fieldClass(f.kind) + ((S.sel === f || ms.has(f)) && !S.fill ? ' sel' : '') + (ms.has(f) ? ' ms2' : '') + (S.fill ? ' fill' : ''));
     d.dataset.id = f.id; d.dataset.k = f.kind === 'text' && f.multiline ? 'multi' : f.kind; d.title = f.label || f.name; place(d, f, pg);
@@ -1570,7 +1572,11 @@ function bindOverlay(ov, pi) {
     renderList(); renderOverlay(pi);
   };
   ov.addEventListener('pointerup', end);
-  ov.addEventListener('contextmenu', (e) => { if ((lp || e.pointerType === 'touch') && e.target.closest('.fld')) e.preventDefault(); });
+  ov.addEventListener('contextmenu', (e) => {
+    const fe = e.target.closest('.fld'); if ((lp || e.pointerType === 'touch') && fe) { e.preventDefault(); return; }
+    if (!fe || S.fill || S.mode !== 'select' || document.body.classList.contains('fldlock')) return; const f = findField(+fe.dataset.id); if (!f) return;
+    e.preventDefault(); fieldMenu(e.clientX, e.clientY, f);
+  });
   ov.addEventListener('dblclick', (e) => { const fe = e.target.closest('.fld'); if (!fe || S.fill || S.mode !== 'select' || e.target.closest('.hd, .fmv')) return; const f = findField(+fe.dataset.id); if (f) { clearTimeout(collT); if (S.sel !== f && !multiSet().has(f)) select(f); openFtb(f); } });
   ov.addEventListener('pointercancel', () => { pill.hide(); if (lp) { clearTimeout(lp.t); lp = null; } if (ghost) { ghost.remove(); ghost = null; } drag = null; renderOverlay(pi); });
 }
@@ -1599,7 +1605,7 @@ async function buildPdf() {
   const uniq = (n) => { n = (n || 'field').replace(/[.\u0000-\u001f]/g, '_'); let k = n, i = 2; while (used.has(k)) k = n + '_' + i++; used.add(k); return k; };
   S.pages.forEach((pg, pi) => {
     const page = pdf.getPage(pi);
-    for (const f of pg.fields) {
+    for (const f of pg.fields.slice().sort(zs)) {
       const [ax, ay] = pg.vp.convertToPdfPoint(f.x0, f.y0), [bx, by] = pg.vp.convertToPdfPoint(f.x1, f.y1);
       const x = Math.min(ax, bx), y = Math.min(ay, by), w = Math.abs(bx - ax), h = Math.abs(by - ay);
       ensureDefaults(f);
@@ -2206,7 +2212,8 @@ const FSW = ['#000000', '#444444', '#888888', '#d11a2a', '#ea7a0c', '#e0b400', '
 const FI = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
 const FIC = { minus: '<path d="M5 12h14"/>', plus: '<path d="M12 5v14M5 12h14"/>', a0: '<path d="M4 6h16M4 12h10M4 18h14"/>', a1: '<path d="M4 6h16M7 12h10M5 18h14"/>', a2: '<path d="M4 6h16M10 12h10M6 18h14"/>',
   fc: '<path d="M6 17 12 4l6 13M8.5 12.5h7"/>', b: '<path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/>', i: '<path d="M10 5h8M6 19h8M14 5 10 19"/>', u: '<path d="M7 4v7a5 5 0 0 0 10 0V4M5 20h14"/>', a3: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>', sp: '<path d="M4 5v14M20 5v14M8 12h8M8 12l2-2M8 12l2 2M16 12l-2-2M16 12l-2 2"/>', op: '<circle cx="12" cy="12" r="8"/><path d="M12 4v16M12 8h4M12 12h6M12 16h4"/>', sf: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 14 14 4M4 20 20 4M10 20 20 10"/>',
-  bg: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>', bd: '<rect x="4" y="4" width="16" height="16" rx="2"/>' };
+  bg: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>', bd: '<rect x="4" y="4" width="16" height="16" rx="2"/>',
+  zf: '<path d="M16 4H5a1 1 0 0 0-1 1v11"/><rect x="8" y="8" width="13" height="13" rx="2" fill="currentColor" fill-opacity=".3"/>', zf1: '<path d="M12 19V8M6 13l6-6 6 6M5 3h14"/>', zb1: '<path d="M12 5v11M6 11l6 6 6-6M5 21h14"/>', zb: '<rect x="3" y="3" width="13" height="13" rx="2" fill="currentColor" fill-opacity=".3"/><path d="M8 20h11a1 1 0 0 0 1-1V8"/>' };
 const fUni = (arr, fn) => { if (!arr.length) return undefined; const v = fn(arr[0]); return arr.every((x) => fn(x) === v) ? v : null; };
 const fsOf = (f) => f.fs > 0 ? f.fs : Math.round(autoFs(f));
 const fbtn = (a, ic, t, on, extra) => '<button type="button" data-a="' + a + '" title="' + t + '" aria-label="' + t + '"' + (on ? ' class="on"' : '') + (extra || '') + '>' + FI(ic) + '</button>';
@@ -2218,8 +2225,73 @@ function ftbRender() {
   if (TF.length) { const v = fUni(TF, fsOf); h += '<button type="button" class="tx" data-a="fsd" title="字體大小(pt)">' + (v == null ? '—' : v) + ' ▾</button>'; }
   if (TA.length) { const q = fUni(TA, (x) => x.q || 0); h += (h ? '<span class="sep"></span>' : '') + [0, 1, 2].map((k) => btn('q' + k, FIC['a' + k], ['靠左', '置中', '靠右'][k], q === k)).join(''); }
   if (T.length) h += (h ? '<span class="sep"></span>' : '') + btn('pp', FIC.bg, '顏色與框線');
+  if (T.length) h += '<span class="sep"></span>' + btn('zf1', FIC.zf1, '向前移一層') + btn('zb1', FIC.zb1, '向後移一層');
   ftb.innerHTML = h;
 }
+const zs = (a, b) => (a.z || 0) - (b.z || 0);
+function fieldZ(front) {   // 送到最前 / 最後(同頁欄位之間;輸出時跟返呢個次序);front = 1 / -1:向前 / 向後移一層
+  const T = targets(); if (!T.length) return;
+  if (front === 1 || front === -1) {
+    for (const pi of new Set(T.map((f) => f.page))) {
+      const pg = S.pages[pi], set = new Set(T), L = pg.fields.map((f, i) => [f, i]).sort((a, b) => zs(a[0], b[0]) || a[1] - b[1]).map((x) => x[0]);
+      if (front === -1) for (let i = 1; i < L.length; i++) { if (set.has(L[i]) && !set.has(L[i - 1])) [L[i - 1], L[i]] = [L[i], L[i - 1]]; }
+      else for (let i = L.length - 2; i >= 0; i--) { if (set.has(L[i]) && !set.has(L[i + 1])) [L[i + 1], L[i]] = [L[i], L[i + 1]]; }
+      L.forEach((f, i) => { f.z = i; });
+    }
+    rerender(T); toast(front === 1 ? '已向前移一層' : '已向後移一層'); return;
+  }
+  for (const pi of new Set(T.map((f) => f.page))) {
+    const pg = S.pages[pi], mine = T.filter((f) => f.page === pi).sort(zs), zv = pg.fields.map((f) => f.z || 0);
+    if (front) { let z = Math.max(0, ...zv); for (const f of mine) f.z = ++z; } else { let z = Math.min(0, ...zv); for (const f of mine.slice().reverse()) f.z = --z; }
+  }
+  rerender(T); toast(front ? '已送到最前' : '已送到最後');
+}
+function alignBoxes(T, how, W, H) {   // 對齊 / 平均分佈:1 個物件 = 對齊頁面,多個 = 對齊選取範圍
+  const B = T.length === 1 ? { x0: 0, y0: 0, x1: W, y1: H } : { x0: Math.min(...T.map((o) => o.x0)), y0: Math.min(...T.map((o) => o.y0)), x1: Math.max(...T.map((o) => o.x1)), y1: Math.max(...T.map((o) => o.y1)) };
+  if (how === 'dh' || how === 'dv') {
+    if (T.length < 3) return; const h = how === 'dh', k0 = h ? 'x0' : 'y0', k1 = h ? 'x1' : 'y1', L = [...T].sort((a, b) => a[k0] - b[k0]);
+    const gap = ((h ? B.x1 - B.x0 : B.y1 - B.y0) - L.reduce((n, o) => n + (o[k1] - o[k0]), 0)) / (L.length - 1); let c = h ? B.x0 : B.y0;
+    for (const o of L) { const w = o[k1] - o[k0]; o[k0] = c; o[k1] = c + w; c += w + gap; } return;
+  }
+  if (how === 'pc') { const U = { x0: Math.min(...T.map((o) => o.x0)), y0: Math.min(...T.map((o) => o.y0)), x1: Math.max(...T.map((o) => o.x1)), y1: Math.max(...T.map((o) => o.y1)) }, dx = W / 2 - (U.x0 + U.x1) / 2, dy = H / 2 - (U.y0 + U.y1) / 2; for (const o of T) { o.x0 += dx; o.x1 += dx; o.y0 += dy; o.y1 += dy; } return; }
+  for (const o of T) {
+    const w = o.x1 - o.x0, h = o.y1 - o.y0;
+    if (how === 'l') { o.x0 = B.x0; o.x1 = B.x0 + w; } else if (how === 'r') { o.x1 = B.x1; o.x0 = B.x1 - w; } else if (how === 'ch') { const c = (B.x0 + B.x1) / 2; o.x0 = c - w / 2; o.x1 = c + w / 2; }
+    else if (how === 't') { o.y0 = B.y0; o.y1 = B.y0 + h; } else if (how === 'b') { o.y1 = B.y1; o.y0 = B.y1 - h; } else if (how === 'cv') { const c = (B.y0 + B.y1) / 2; o.y0 = c - h / 2; o.y1 = c + h / 2; }
+  }
+}
+const ALIGN_ITEMS = [['靠左', 'l'], ['水平置中', 'ch'], ['靠右', 'r'], null, ['靠上', 't'], ['垂直置中', 'cv'], ['靠下', 'b']];
+function fieldAlign(how) { const T = targets(); for (const pi of new Set(T.map((f) => f.page))) { const pg = S.pages[pi]; alignBoxes(T.filter((f) => f.page === pi), how, pg.W, pg.H); } rerender(T); renderEditor(); }
+function fieldSize(how, ref) {   // 同寬 / 同高 / 同大小(跟返右鍵撳嗰個欄位)
+  const T = targets().filter((f) => f !== ref); for (const f of T) { const pg = S.pages[f.page]; if (how !== 'h') f.x1 = Math.min(pg.W, f.x0 + (ref.x1 - ref.x0)); if (how !== 'w') f.y1 = Math.min(pg.H, f.y0 + (ref.y1 - ref.y0)); } rerender(T); renderEditor();
+}
+function dupFields() {
+  const T = targets(); if (!T.length) return; const out = [];
+  for (const f of T) { const pg = S.pages[f.page], n = { ...f, id: S.uid++, x0: f.x0 + 24, x1: f.x1 + 24, y0: f.y0 + 24, y1: f.y1 + 24 }; if (n.x1 > pg.W) { n.x0 -= n.x1 - pg.W; n.x1 = pg.W; } if (n.y1 > pg.H) { n.y0 -= n.y1 - pg.H; n.y1 = pg.H; }
+    if (n.opts) n.opts = [...n.opts]; n.z = Math.max(0, ...pg.fields.map((q) => q.z || 0)) + 1; n.userName = false; n.value = n.kind === 'check' ? false : ''; pg.fields.push(n); out.push(n); }
+  for (const pi of new Set(out.map((f) => f.page))) renumber(pi);
+  const before = targets(); if (out.length === 1) select(out[0]); else { S.msel = out; S.sel = out[out.length - 1]; if (S.hooks.clearMark) S.hooks.clearMark(); }
+  rerender([...before, ...out]); renderList(); renderEditor(); updateStatus();
+}
+function fieldMenu(x, y, f) {
+  if (!multiSet().has(f) && S.sel !== f) select(f);
+  const T = targets(), multi = T.length > 1;
+  S.api.ctxOpen(x, y, (c) => {
+    c.head(multi ? '已選 ' + T.length + ' 個欄位' : '表單欄位');
+    if (!multi) {
+      c.sub('欄位類型', (m) => { for (const [k, v] of Object.entries(KINDS)) c.add((f.kind === k ? '✓ ' : '') + v, () => setKind(k), {}, m); });
+      c.add('重新命名…', () => { const i = $('#e-name'); if (i) { i.focus(); i.select(); } }); c.hr();
+    }
+    c.add('重複一份', dupFields);
+    c.sub('排列', (m) => { c.add('向前移一層', () => fieldZ(1), {}, m); c.add('向後移一層', () => fieldZ(-1), {}, m); });
+    if (multi) {
+      c.sub('對齊', (m) => { for (const it of ALIGN_ITEMS) { if (!it) { m.append(el('hr')); continue; } c.add(it[0], () => fieldAlign(it[1]), {}, m); } m.append(el('hr')); c.add('水平平均分佈', () => fieldAlign('dh'), { off: T.length < 3 }, m); c.add('垂直平均分佈', () => fieldAlign('dv'), { off: T.length < 3 }, m); });
+      c.sub('大小', (m) => { c.add('同寬', () => fieldSize('w', f), {}, m); c.add('同高', () => fieldSize('h', f), {}, m); c.add('同大小', () => fieldSize('wh', f), {}, m); });
+    } else c.sub('對齊頁面', (m) => { for (const it of ALIGN_ITEMS) { if (!it) { m.append(el('hr')); continue; } c.add(it[0], () => fieldAlign(it[1]), {}, m); } });
+    c.hr(); c.add(multi ? '刪除已選 ' + T.length + ' 個' : '刪除欄位', deleteSel, { danger: true });
+  });
+}
+S.api.alignBoxes = alignBoxes; S.api.ALIGN_ITEMS = ALIGN_ITEMS;
 function ftbPos() {
   if (ftb.hidden) return; let r;
   if (ftbX.mode === 'm') r = ftbX.rect(); else { const f = ftbF; if (!f) return; const d = S.pages[f.page].map.get(f.id); if (!d) return; r = d.getBoundingClientRect(); }
@@ -2292,12 +2364,15 @@ ftb.addEventListener('click', (e) => {
   fpop.hidden = true;
   if (a === 'fs-' || a === 'fs+') { const TF = targets().filter(hasFont), base = fUni(TF, fsOf) ?? fsOf(S.sel && hasFont(S.sel) ? S.sel : TF[0]), nv = Math.max(4, Math.min(72, base + (a === 'fs+' ? 1 : -1))); ftbApply((x) => { x.fs = nv; }, hasFont); }
   else if (a[0] === 'q') { const q = +a[1]; ftbApply((x) => { x.q = q; }, isTextual); }
+  else if (a === 'zf' || a === 'zb') fieldZ(a === 'zf');
+  else if (a === 'zf1' || a === 'zb1') fieldZ(a === 'zf1' ? 1 : -1);
 });
 document.addEventListener('pointerdown', (e) => { if (ftb.hidden || e.target.closest('.ftb, .cpop, .fmt')) return; closeFtb(); }, true);
 document.addEventListener('keydown', (e) => { if (e.key !== 'Escape' || ftb.hidden) return; e.stopPropagation(); if (!fpop.hidden) fpop.hidden = true; else closeFtb(); }, true);
 const ftbMove = (e) => { if (e && e.target && e.target.closest && e.target.closest('.cpop, .ftb')) return; if (!fpop.hidden) fpop.hidden = true; ftbPos(); };
 addEventListener('resize', ftbMove); document.addEventListener('scroll', ftbMove, true);
 Object.assign(S.api, { ftbX, ftbEl: ftb, fpop, colorPop, popAt, propPop, sizePop, ftbPos, openFtbX, closeFtb, FI, FIC, fUni, fbtn, fcbtn });
+$('#e-fwd1').addEventListener('click', () => fieldZ(1)); $('#e-back1').addEventListener('click', () => fieldZ(-1));
 $('#e-multi').addEventListener('change', (e) => { for (const f of targets()) if (f.kind === 'text') f.multiline = e.target.checked; });
 function setKind(k) { if (!k) return; const T = targets(); for (const f of T) setKindOne(f, k); rerender(T); renderList(); renderEditor(); updateStatus(); }
 function setKindOne(f, k) { if (f.kind === k) return; const prev = f.kind; f.kind = k; ensureDefaults(f);
@@ -2768,6 +2843,7 @@ FX.render = () => {
     h += sep() + [0, 1, 2, 3].map((k) => fbtn('al' + k, FC[k === 3 ? 'a3' : 'a' + k], ['靠左', '置中', '靠右', '分散對齊'][k], al === k)).join('') + sep() + fbtn('sp', FC.sp, '字距 / 行距');
   }
   if (TO.length) h += sep() + fbtn('pp', FC.bg, '顏色、框線與透明度');
+  if (T.length) h += sep() + fbtn('zf1', FC.zf1, '向前移一層') + fbtn('zb1', FC.zb1, '向後移一層');
   return h;
 };
 async function mkApply(fn, filt) {
@@ -2776,6 +2852,20 @@ async function mkApply(fn, filt) {
   A.ftbEl.innerHTML = FX.render(); A.ftbPos();
 }
 const isT = (m) => m.kind === 'text', isS = (m) => m.kind === 'shape';
+function mkZ(front) {   // 送到最前 / 最後:改 S.marks 次序(畫面同輸出都跟呢個次序);front = 1 / -1:向前 / 向後移一層
+  const T = mkTg(); if (!T.length) return;
+  if (front === 1 || front === -1) {
+    const set = new Set(T), A2 = S.marks;
+    if (front === -1) { for (let i = 1; i < A2.length; i++) if (set.has(A2[i])) { let j = i - 1; while (j >= 0 && (set.has(A2[j]) || A2[j].page !== A2[i].page)) j--; if (j >= 0) { const [m] = A2.splice(i, 1); A2.splice(j, 0, m); } } }
+    else { for (let i = A2.length - 2; i >= 0; i--) if (set.has(A2[i])) { let j = i + 1; while (j < A2.length && (set.has(A2[j]) || A2[j].page !== A2[i].page)) j++; if (j < A2.length) { const [m] = A2.splice(i, 1); A2.splice(j, 0, m); } } }
+    for (const pi of new Set(T.map((m) => m.page))) renderMarks(pi);
+    record(); toast(front === 1 ? '已向前移一層' : '已向後移一層'); return;
+  }
+  const set = new Set(T), rest = S.marks.filter((m) => !set.has(m)), mine = S.marks.filter((m) => set.has(m));
+  S.marks.splice(0, S.marks.length, ...(front ? [...rest, ...mine] : [...mine, ...rest]));
+  for (const pi of new Set(T.map((m) => m.page))) renderMarks(pi);
+  record(); toast(front ? '已送到最前' : '已送到最後');
+}
 function spPop(btnEl) {
   const TT = mkTg().filter(isT), fp = A.fpop; fp.textContent = ''; fp.style.cssText = 'display:flex;flex-direction:column;gap:6px;padding:8px;width:auto';
   const rows = [['字距', 'csp', 0.5, -2, 20, 0], ['行距', 'lsp', 0.1, 0.8, 4, 1.35]];
@@ -2815,6 +2905,8 @@ FX.click = (e) => {
   if (a === 'pp') { if (!A.fpop.hidden && A.fpop.dataset.for === 'pp') { A.fpop.hidden = true; return; } A.propPop(b, mkCfg); return; }
   if (a === 'fsd') { if (!A.fpop.hidden && A.fpop.dataset.for === 'fsd') { A.fpop.hidden = true; return; } A.sizePop(b, fUni(T.filter(isT), (m) => m.fs), 6, 120, (v) => mkApply((m) => { m.fs = v; }, isT)); return; }
   A.fpop.hidden = true;
+  if (a === 'zf' || a === 'zb') { mkZ(a === 'zf'); return; }
+  if (a === 'zf1' || a === 'zb1') { mkZ(a === 'zf1' ? 1 : -1); return; }
   const step = (k, df, st, lo, hi, flt, post) => { const TF = T.filter(flt), base = fUni(TF, (m) => r1(m[k] == null ? df : m[k])) ?? df, nv = Math.max(lo, Math.min(hi, r1(base + st))); mkApply((m) => { m[k] = nv; if (post) post(m); }, flt); };
   if (a === 'fs-' || a === 'fs+') step('fs', 11, a === 'fs+' ? 1 : -1, 6, 120, isT);
   else if (a === 'b') { const on = fUni(T.filter(isT), (m) => !!m.bold) !== true; mkApply((m) => { m.bold = on; }, isT); }
@@ -3011,7 +3103,7 @@ for (let q = 0; q < 4; q++) $('#mk-pd' + q).addEventListener('input', () => { co
   $('#ctxbar').addEventListener('click', (e) => { const g = e.target.closest && e.target.closest('.cg[data-t]'); if (!g || e.target !== g) return; const r = g.getBoundingClientRect(); if (e.clientY - r.top > 32) return; if (COL.has(g.dataset.t)) COL.delete(g.dataset.t); else COL.add(g.dataset.t); sync(); try { localStorage.setItem('pf-col', JSON.stringify([...COL])); } catch (e2) { /* 略過 */ } });
   sync(); }
 $('#mk-white').addEventListener('change', (e) => setProp('white', e.target.checked, true));
-$('#mk-del').addEventListener('click', delMark);
+$('#mk-del').addEventListener('click', delMark); $('#mk-fwd1').addEventListener('click', () => mkZ(1)); $('#mk-back1').addEventListener('click', () => mkZ(-1));
 
 /* ---- 預設格式 / 複製貼上 / 格式複製 ---- */
 const FMT_T = ['fs', 'font', 'color', 'bold', 'it', 'ul', 'st', 'align', 'va', 'lsp', 'csp'], STY_T = ['bg', 'bc', 'bw', 'ls'], FMT_S = ['color', 'fillc', 'lw', 'ls'], FMT_ALL_T = [...FMT_T, ...STY_T];
@@ -3024,15 +3116,58 @@ for (const b of document.querySelectorAll('[data-def]')) b.addEventListener('cli
 });
 const defText = () => ({ ...DEF.tfmt, ...DEF.tsty }), defShape = () => ({ ...DEF.sshp });
 let CLIP = null, clipN = 0;
-async function pasteClip() {
+async function pasteClip(at) {   // at = { pi, x, y }:貼喺右鍵位置(成組嘅左上角對住呢點);冇 at = 原位偏移
   if (!CLIP || !CLIP.length) return; clipN++; const out = [];
-  for (const c of CLIP) { const n = { ...c, id: mkSeq++, x0: c.x0 + 16 * clipN, x1: c.x1 + 16 * clipN, y0: c.y0 + 16 * clipN, y1: c.y1 + 16 * clipN }; for (const k of ['sp', 'sc', 'sl']) if (c[k]) n[k] = c[k].map((r) => [...r]); S.marks.push(n); out.push(n); }
+  const ux = Math.min(...CLIP.map((c) => c.x0)), uy = Math.min(...CLIP.map((c) => c.y0)), pgA = at && S.pages[at.pi];
+  for (const c of CLIP) { const dx = at ? at.x - ux : 16 * clipN, dy = at ? at.y - uy : 16 * clipN; const n = { ...c, id: mkSeq++, x0: c.x0 + dx, x1: c.x1 + dx, y0: c.y0 + dy, y1: c.y1 + dy }; if (at) { n.page = at.pi; const w = n.x1 - n.x0, h = n.y1 - n.y0; if (n.x1 > pgA.W) { n.x1 = pgA.W; n.x0 = pgA.W - w; } if (n.y1 > pgA.H) { n.y1 = pgA.H; n.y0 = pgA.H - h; } } for (const k of ['sp', 'sc', 'sl']) if (c[k]) n[k] = c[k].map((r) => [...r]); S.marks.push(n); out.push(n); }
   for (const n of out) await refreshMark(n); updateExportState(); out.length > 1 ? setMulti(out) : selectMark(out[0]); record();
+}
+/* 右鍵選單:標註 / 頁面空白位(位置 = 右鍵嗰點) */
+function copyClip() { const arr = S.multi.length > 1 ? S.multi : S.selMark ? [S.selMark] : []; if (!arr.length) return; CLIP = arr.map((m) => { const c = { ...m }; delete c.url; delete c.cell; return c; }); clipN = 0; }
+async function mkAlign(how) {
+  const T = mkTg().filter((m) => m.kind !== 'mu' || true); if (!T.length) return;
+  for (const pi of new Set(T.map((m) => m.page))) { const pg = S.pages[pi]; A.alignBoxes(T.filter((m) => m.page === pi), how, pg.W, pg.H); }
+  await Promise.all(T.map((m) => refreshMark(m))); record();
+}
+function mkRot(d) { const T = mkTg().filter((m) => m.kind === 'shape'); if (!T.length) return; for (const m of T) m.rot = (((m.rot || 0) + d) % 360 + 360) % 360; for (const pi of new Set(T.map((m) => m.page))) renderMarks(pi); record(); }
+function markMenu(x, y, m) {
+  if (!S.multi.includes(m) && S.selMark !== m) selectMark(m);
+  const T = mkTg(), multi = T.length > 1, shapes = T.every((o) => o.kind === 'shape');
+  S.api.ctxOpen(x, y, (c) => {
+    c.head(multi ? '已選 ' + T.length + ' 個物件' : MK_NAME(m));
+    c.add('剪下', () => { copyClip(); multi ? delMulti() : delMark(); }); c.add('複製', copyClip); c.add('重複一份', () => { copyClip(); pasteClip(); }); c.hr();
+    c.sub('排列', (h) => { c.add('向前移一層', () => mkZ(1), {}, h); c.add('向後移一層', () => mkZ(-1), {}, h); });
+    c.sub(multi ? '對齊' : '對齊頁面', (h) => {
+      for (const it of A.ALIGN_ITEMS) { if (!it) { h.append(el('hr')); continue; } c.add(it[0], () => mkAlign(it[1]), {}, h); }
+      h.append(el('hr')); c.add('置中於頁面', () => mkAlign('pc'), {}, h);
+      if (multi) { c.add('水平平均分佈', () => mkAlign('dh'), { off: T.length < 3 }, h); c.add('垂直平均分佈', () => mkAlign('dv'), { off: T.length < 3 }, h); }
+    });
+    if (shapes) c.sub('旋轉', (h) => { c.add('向左 90°', () => mkRot(-90), {}, h); c.add('向右 90°', () => mkRot(90), {}, h); c.add('重設角度', () => { for (const o of T) o.rot = 0; for (const pi of new Set(T.map((q) => q.page))) renderMarks(pi); record(); }, {}, h); });
+    c.hr(); c.add(multi ? '刪除已選 ' + T.length + ' 個' : '刪除', () => (multi ? delMulti() : delMark()), { danger: true });
+  });
+}
+async function placeHere(pi, p, tpl) { setPending(tpl); await placePending(pi, p, null); if (pending) setPending(null); }
+function blankMenu(x, y, pi, p) {
+  S.api.ctxOpen(x, y, (c) => {
+    c.head('第 ' + (pi + 1) + ' 頁 · 喺呢度');
+    c.sub('喺呢度加入', (h) => {
+      c.add('文字', () => placeHere(pi, p, textTpl(defText())), {}, h);
+      c.sub('圖案', (g) => { for (const [v, t] of [['rect', '長方形'], ['ellipse', '圓形'], ['tri', '三角形'], ['arrow', '實心箭咀'], ['line', '直線']]) c.add(t, () => placeHere(pi, p, { kind: 'shape', shape: v, color: '#d11a2a', fillc: '', lw: /^(line|larrow)$/.test(v) ? 4 : 3, ...defShape() }), {}, g); }, h);
+      c.add('剔選框', () => placeHere(pi, p, { kind: 'shape', ...defShape(), shape: 'cbox', color: '#111111', fillc: '', lw: 1.5, ls: 'solid', op: 1, on: false, cbox: true }), {}, h);
+    });
+    c.add('貼上', () => pasteClip({ pi, x: p.x, y: p.y }), { off: !CLIP || !CLIP.length });
+  });
+}
+function openMkCtx(cx, cy, target, pi, mv) {
+  const pg = S.pages[pi], r = mv.getBoundingClientRect(), k = pg.W / r.width, mk = target && target.closest && target.closest('.mk');
+  if (mk) { const m = S.marks.find((q) => String(q.id) === mk.dataset.id); if (m) { markMenu(cx, cy, m); return; } }
+  blankMenu(cx, cy, pi, { x: (cx - r.left) * k, y: (cy - r.top) * k });
 }
 document.addEventListener('keydown', (e) => {
   const tag = (e.target && e.target.tagName) || ''; if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || !M.back.hidden || editNode) return;
   if (!(e.metaKey || e.ctrlKey) || e.altKey) return; const k = e.key.toLowerCase();
   if (k === 'c') { const arr = S.multi.length > 1 ? S.multi : S.selMark ? [S.selMark] : []; if (!arr.length) return; e.preventDefault(); CLIP = arr.map((m) => { const c = { ...m }; delete c.url; delete c.cell; return c; }); clipN = 0; }
+  else if (k === 'x') { const arr = S.multi.length > 1 ? S.multi : S.selMark ? [S.selMark] : []; if (!arr.length) return; e.preventDefault(); copyClip(); S.multi.length > 1 ? delMulti() : delMark(); }
   else if (k === 'v' && CLIP) { e.preventDefault(); pasteClip(); }
 });
 /* 揀咗文字格/偵測格:直接打字就輸入(唔使再撳) */
@@ -3268,6 +3403,9 @@ function bindMarkLayer(mv, pi) {
   });
   mv.addEventListener('pointerleave', () => { if (S.hov) { const o = S.hov.pi; S.hov = null; renderHints(o); } });
   mv.addEventListener('contextmenu', (e) => { if (!S.mkMode || S.tool !== 'edit' || S.annot || pending || e.target.closest('.mk')) return; const pg = S.pages[pi], r = mv.getBoundingClientRect(), k = pg.W / r.width, c = A.pageCells(pg).length ? cellAt(pg, { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k }, k) : null; if (!c) return; e.preventDefault(); delCell(pi, c); });
+  mv.addEventListener('contextmenu', (e) => { if (e.defaultPrevented || !S.mkMode || pending || editNode) return; e.preventDefault(); openMkCtx(e.clientX, e.clientY, e.target, pi, mv); });
+  { let lpT = 0, lx = 0, ly = 0; mv.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'touch' || !S.mkMode || pending || editNode) return; lx = e.clientX; ly = e.clientY; const tg = e.target; clearTimeout(lpT); lpT = setTimeout(() => { if (!drag || !drag.moved) openMkCtx(lx, ly, tg, pi, mv); }, 600); });
+    mv.addEventListener('pointermove', (e) => { if (lpT && Math.hypot(e.clientX - lx, e.clientY - ly) > 8) { clearTimeout(lpT); lpT = 0; } }); for (const n of ['pointerup', 'pointercancel']) mv.addEventListener(n, () => { clearTimeout(lpT); lpT = 0; }); }
   /* 手掣:只拖動頁面;偵測格隱藏,唔入字 */
   mv.addEventListener('pointerdown', (e) => {
     if (S.tool !== 'hand' || !S.mkMode || pending || e.button !== 0) return;
@@ -3986,18 +4124,28 @@ async function moveTo(from, to) {   // 拖拉:將 from(多選時成組)放到 to
   if (out.every((x, k) => x.src === k)) return;
   thSel = at; await applyItems(out, '移動頁面'); thSels.clear(); for (let k = 0; k < sel.length; k++) thSels.add(at + k); thSel = at; markSel();
 }
-function showCtx(x, y, i) {
+function ctxApi() {
   ctxm.textContent = '';
   const add = (t, fn, o = {}, host = ctxm) => { const b = el('button', o.danger ? 'danger' : '', t); b.setAttribute('role', 'menuitem'); b.disabled = !!o.off; b.addEventListener('click', () => { hideCtx(); fn(); }); host.append(b); };
-  const sub = (t, build) => {   // 二級選單:滑鼠移入 / 撳 / 方向鍵 → 打開
+  const sub = (t, build, host = ctxm) => {   // 二級選單:滑鼠移入 / 撳 / 方向鍵 → 打開
     const w = el('div', 'csub'), h = el('button', '', t); h.type = 'button'; h.setAttribute('role', 'menuitem'); h.setAttribute('aria-haspopup', 'true'); const m = el('div', 'csubm'); m.setAttribute('role', 'menu');
-    const open = () => { for (const o of ctxm.querySelectorAll('.csub.open')) if (o !== w) o.classList.remove('open'); w.classList.add('open'); m.classList.remove('l'); m.style.top = ''; m.style.bottom = ''; const r = m.getBoundingClientRect(); if (r.right > innerWidth - 4) m.classList.add('l'); if (r.bottom > innerHeight - 4) { m.style.top = 'auto'; m.style.bottom = '-4px'; } };
+    const open = () => { for (const o of ctxm.querySelectorAll('.csub.open')) if (o !== w && !o.contains(w)) o.classList.remove('open'); w.classList.add('open'); m.classList.remove('l'); m.style.top = ''; m.style.bottom = ''; const r = m.getBoundingClientRect(); if (r.right > innerWidth - 4) m.classList.add('l'); if (r.bottom > innerHeight - 4) { m.style.top = 'auto'; m.style.bottom = '-4px'; } };
     h.addEventListener('click', (e) => { e.stopPropagation(); w.classList.contains('open') ? w.classList.remove('open') : open(); });
     w.addEventListener('mouseenter', open); w.addEventListener('mouseleave', () => w.classList.remove('open'));
     h.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); open(); const f = m.querySelector('button:not(:disabled)'); if (f) f.focus(); } });
     m.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); w.classList.remove('open'); h.focus(); } });
-    build(m); w.append(h, m); ctxm.append(w);
+    build(m); w.append(h, m); host.append(w);
   };
+  const hr = () => ctxm.append(el('hr')), head = (t) => ctxm.append(el('div', 'ctx-h', t));
+  return { add, sub, hr, head };
+}
+function ctxPlace(x, y) {
+  ctxm.hidden = false; const r = ctxm.getBoundingClientRect(); ctxm.style.left = Math.max(4, Math.min(x, innerWidth - r.width - 4)) + 'px'; ctxm.style.top = Math.max(4, Math.min(y, innerHeight - r.height - 4)) + 'px';
+  const f = ctxm.querySelector('button:not(:disabled)'); if (f) f.focus();
+}
+S.api.ctxOpen = (x, y, build) => { const a = ctxApi(); build(a); ctxPlace(x, y); };
+function showCtx(x, y, i) {
+  const { add, sub } = ctxApi();
   const n = S.pages.length, multi = thSels.has(i) && thSels.size > 1; ctxm.append(el('div', 'ctx-h', multi ? '已選 ' + thSels.size + ' 頁' : '第 ' + (i + 1) + ' 頁'));
   sub('旋轉頁面', (m) => { add('向右旋轉 90°', () => runOp('rotR', i), {}, m); add('向左旋轉 90°', () => runOp('rotL', i), {}, m); }); ctxm.append(el('hr'));
   sub('插入空白頁', (m) => { add('於前方', () => runOp('addB', i), {}, m); add('於後方', () => runOp('addA', i), {}, m); }); add(multi ? '複製已選頁面' : '複製頁面', () => runOp('dup', i)); ctxm.append(el('hr'));
@@ -4006,8 +4154,7 @@ function showCtx(x, y, i) {
   sub('移動頁面', (m) => { add('移到最前', () => runOp('first', i), { off: multi ? false : i === 0 }, m); add('向上移動', () => runOp('up', i), { off: Math.min(...selIdx(i)) === 0 }, m); add('向下移動', () => runOp('down', i), { off: Math.max(...selIdx(i)) === n - 1 }, m); add('移到最後', () => runOp('last', i), { off: multi ? false : i === n - 1 }, m); }); ctxm.append(el('hr'));
   add(multi ? '刪除已選 ' + thSels.size + ' 頁' : '刪除頁面', () => runOp('del', i), { danger: true, off: multi ? thSels.size >= n : n < 2 });
   if (undo) { ctxm.append(el('hr')); add('復原上一步', undoPages); }
-  ctxm.hidden = false; const r = ctxm.getBoundingClientRect(); ctxm.style.left = Math.max(4, Math.min(x, innerWidth - r.width - 4)) + 'px'; ctxm.style.top = Math.max(4, Math.min(y, innerHeight - r.height - 4)) + 'px';
-  const f = ctxm.querySelector('button:not(:disabled)'); if (f) f.focus();
+  ctxPlace(x, y);
 }
 function hideCtx() { ctxm.hidden = true; }
 document.addEventListener('pointerdown', (e) => { if (!ctxm.hidden && !ctxm.contains(e.target)) hideCtx(); });
