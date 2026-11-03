@@ -691,7 +691,7 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" style="fill:var(--logo)"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" style="fill:var(--logo)">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.67.0</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.67.1</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -1846,10 +1846,10 @@ async function exportPdf() {
   try {
     const bytes = await buildPdf();
     const dl = await (window.claude && window.claude.use ? window.claude.use('downloads') : null);
-    if (!dl) { toast('呢個檢視不支援下載,請喺 claude.ai 內開啟本頁'); return; }
     const base = (S.name || 'form').replace(/\.pdf$/i, '').replace(/_(edited|fillable)$/, '');
     setBusy(false); const fname = await askFileName(base + (n ? '_fillable' : '_edited'));
     if (!fname) { toast('已取消儲存'); return; }
+    if (!dl) { await S.api.saveFile(fname, bytes); return; }
     const r = await dl.save({ filename: fname, data: bytes });
     toast(r.status === 'saved' ? '已儲存 ' + fname + '(' + n + ' 個欄位' + (nm ? '、' + nm + ' 項內容' : '') + ')' : '已送出');
   } catch (e) {
@@ -2613,11 +2613,21 @@ window.addEventListener('drop', async (e) => {
   for (let k = 0; k < files.length; k++) await openFile(files[k], hs[k] && hs[k].kind === 'file' ? hs[k] : null);
 });
 
-async function saveFile(filename, data) {
+const MIMES = { pdf: 'application/pdf', csv: 'text/csv', zip: 'application/zip', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', txt: 'text/plain' };
+async function saveFile(filename, data) {   // 內嵌檢視用 claude 下載;獨立網頁/已安裝程式用「另存新檔」視窗,最後用瀏覽器下載
   const dl = await (window.claude && window.claude.use ? window.claude.use('downloads') : null);
-  if (!dl) { toast('呢個檢視不支援下載,請喺 claude.ai 內開啟本頁'); return false; }
-  try { const r = await dl.save({ filename, data }); toast(r.status === 'saved' ? '已儲存 ' + filename : '已送出'); return true; }
-  catch (e) { if (e && e.code === 'declined') toast('已取消儲存'); else { console.error(e); toast('儲存失敗:' + (e && e.message ? e.message : e)); } return false; }
+  if (dl) {
+    try { const r = await dl.save({ filename, data }); toast(r.status === 'saved' ? '已儲存 ' + filename : '已送出'); return true; }
+    catch (e) { if (e && e.code === 'declined') toast('已取消儲存'); else { console.error(e); toast('儲存失敗:' + (e && e.message ? e.message : e)); } return false; }
+  }
+  if (window.top !== window.self) { toast('呢個檢視不支援下載,請喺 claude.ai 內開啟本頁,或用 GitHub 版'); return false; }   // 內嵌沙盒入面瀏覽器下載會被擋
+  const ext = ((filename.match(/\.([a-z0-9]+)$/i) || [])[1] || '').toLowerCase(), mime = MIMES[ext] || 'application/octet-stream';
+  if (window.showSaveFilePicker) {
+    try { const h = await window.showSaveFilePicker({ suggestedName: filename, types: ext ? [{ description: ext.toUpperCase(), accept: { [mime]: ['.' + ext] } }] : undefined }); const w = await h.createWritable(); await w.write(data); await w.close(); toast('已儲存 ' + (h.name || filename)); return true; }
+    catch (e) { if (e && e.name === 'AbortError') { toast('已取消儲存'); return false; } console.warn('另存新檔視窗用唔到,改用下載', e); }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = filename; document.body.append(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); toast('已下載 ' + filename); return true;
 }
 Object.assign(S.api, { askFileName, pageCells, setSTab, renumber, renderList, renderEditor, updateStatus, renderAllOverlays, loadPdf, buildPdf, toast, setBusy, tick, el, saveFile, select, renderOverlay, allFields });
 window.__app = S;
