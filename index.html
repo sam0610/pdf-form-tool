@@ -189,6 +189,12 @@ select, .inl select { padding: 4px 8px; border: 1px solid var(--line); border-ra
 .home .hcn { font-weight: 600; font-size: 13px; line-height: 1.3; } .home .hcm { font-size: 11px; color: var(--muted); }
 @media (max-width: 700px) { .home .hlb { grid-template-columns: 1fr; } .home .hdeps { flex-direction: row; flex-wrap: wrap; position: static; } }
 .home .hr2 { position: relative; } .home .hx { position: absolute; right: 14px; top: 14px; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); cursor: pointer; } .home .hx:hover { border-color: var(--accent); } .home .hr2.hasx .hhd { padding-right: 44px; }
+.home .hdl { position: absolute; left: 5px; bottom: 5px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); background: var(--panel); color: var(--muted); padding: 0; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.home .hdl:hover { border-color: var(--accent); } .home .hdl svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.home .hdl.ok { color: #1f8a4c; border-color: #1f8a4c; } .home .hdl.old { color: #b34700; border-color: #b34700; } .home .hdl.busy { color: var(--accent); border-color: transparent; }
+.home .hdl .ring { position: absolute; inset: -1px; width: 28px; height: 28px; transform: rotate(-90deg); } .home .hdl .ring circle { fill: none; stroke-width: 2.5; } .home .hdl .ring .bg { stroke: var(--line); } .home .hdl .ring .fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .12s; }
+.home .hdl .ring.ind { animation: lpspin 1s linear infinite; } @keyframes lpspin { to { transform: rotate(270deg); } }
+.home .hall { margin-left: auto; height: 28px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); font-size: 12px; cursor: pointer; } .home .hall:disabled { opacity: .55; cursor: default; }
 #libprog { position: fixed; left: 50%; bottom: 64px; transform: translateX(-50%); z-index: 90; min-width: 220px; max-width: calc(100vw - 32px); background: var(--panel, #fff); color: var(--ink, #111); border: 1px solid var(--line, #ccc); border-radius: 10px; padding: 10px 14px; box-shadow: 0 8px 24px rgba(0,0,0,.22); font-size: 13px; }
 #libprog .lpb { height: 6px; border-radius: 3px; background: var(--line, #ddd); margin-top: 8px; overflow: hidden; } #libprog i { display: block; height: 100%; background: var(--accent, #1d4ed8); transition: width .15s; }
 #libprog.ind i { width: 40% !important; animation: lpind 1s ease-in-out infinite alternate; } @keyframes lpind { from { margin-left: 0; } to { margin-left: 60%; } }
@@ -671,7 +677,7 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" fill="#0a8f8f"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" fill="#0a8f8f">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.64.1</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.65.0</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -2060,13 +2066,13 @@ function libProg(name, pct) {
   b.querySelector('.lpt').textContent = pct == null ? '下載「' + name + '」…' : '下載「' + name + '」 ' + Math.round(pct * 100) + '%';
   const i = b.querySelector('i'); b.classList.toggle('ind', pct == null); i.style.width = pct == null ? '' : Math.round(pct * 100) + '%';
 }
-async function libFetch(t) {
-  libProg(t.name, 0);
+async function libFetch(t, onp) {
+  const prog = onp || ((q) => libProg(t.name, q)); prog(0);
   const r = await fetch(LIB.base + encodeURI(t.file_path), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
   const tot = +r.headers.get('content-length') || 0;
-  if (!r.body || !r.body.getReader) { libProg(t.name, null); return await r.blob(); }
+  if (!r.body || !r.body.getReader) { prog(null); return await r.blob(); }
   const rd = r.body.getReader(), parts = []; let got = 0;
-  for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; libProg(t.name, tot ? Math.min(got / tot, 1) : null); }
+  for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; prog(tot ? Math.min(got / tot, 1) : null); }
   return new Blob(parts, { type: 'application/pdf' });
 }
 async function libOpen(t) {
@@ -2082,6 +2088,45 @@ async function libOpen(t) {
     else toast('下載唔到範本(請檢查網絡),呢份未存喺本機', 3500);
   } finally { LIB.busy = false; libProg(null); }
 }
+LIB.dl = {};
+const LI = {
+  none: '<path d="M7 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 .5 9.5"/><path d="M12 11v8M9 16l3 3 3-3"/>',
+  ok: '<path d="M7 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 .5 9.5"/><path d="M9 14.5l2.2 2.2L15.5 12"/>',
+  old: '<path d="M7 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 .5 9.5"/><path d="M14.5 13.5a2.8 2.8 0 1 0-.6 2.2M14.5 11v2.5H12"/>',
+  busy: '<path d="M12 8v8M9 13l3 3 3-3"/>' };
+const libState = (t) => { const k = libKey(t); if (LIB.dl[k] !== undefined) return 'busy'; const v = libCm()[k]; return v == null ? 'none' : (v >= t.version ? 'ok' : 'old'); };
+const LTIP = { none: '下載到本機(離線可用)', ok: '已離線可用 · 撳一下移除本機', old: '本機係舊版 · 撳一下更新', busy: '下載中…' };
+function libIcoSet(b, t) {
+  const st = libState(t), k = libKey(t), p = LIB.dl[k];
+  b.className = 'hdl ' + st; b.title = b.ariaLabel = LTIP[st]; let h = '';
+  if (st === 'busy') { const c = 2 * Math.PI * 13, o = p == null ? c * 0.7 : c * (1 - p); h = '<svg class="ring' + (p == null ? ' ind' : '') + '" viewBox="0 0 30 30"><circle class="bg" cx="15" cy="15" r="13"/><circle class="fg" cx="15" cy="15" r="13" stroke-dasharray="' + c + '" stroke-dashoffset="' + o + '"/></svg>'; }
+  b.innerHTML = h + '<svg viewBox="0 0 24 24">' + LI[st] + '</svg>';
+}
+function libRefresh() {
+  for (const b of document.querySelectorAll('.home .hdl[data-k]')) { const t = LIB.list.find((x) => libKey(x) === b.dataset.k); if (t) libIcoSet(b, t); }
+  const n = LIB.list.filter((t) => { const s = libState(t); return s === 'none' || s === 'old'; }).length, a = document.querySelector('.home .hall');
+  if (a) { a.textContent = n ? '全部下載(' + n + ')' : '全部已存本機'; a.disabled = !n || LIB.bulk; }
+}
+async function libDownload(t) {
+  const k = libKey(t); if (LIB.dl[k] !== undefined) return; LIB.dl[k] = null; libRefresh();
+  try { const blob = await libFetch(t, (q) => { LIB.dl[k] = q; libRefresh(); }); if (!(await libPut(k, { ver: t.version, name: t.name, blob, t: Date.now() }))) throw new Error('save'); return true; }
+  catch (e) { toast('「' + t.name + '」下載唔到(請檢查網絡或儲存空間)', 3500); return false; }
+  finally { delete LIB.dl[k]; libRefresh(); }
+}
+async function libRemove(t) {
+  const k = libKey(t); try { await recTx('readwrite', (st) => st.delete(k), 'lib'); const m = libCm(); delete m[k]; localStorage.setItem('pdfform-libcache', JSON.stringify(m)); toast('已移除「' + t.name + '」嘅本機版本'); } catch (e) { /* ignore */ }
+  libRefresh();
+}
+async function libAll() {
+  if (LIB.bulk) return; LIB.bulk = true; libRefresh();
+  try { for (const t of LIB.list.slice()) { const s = libState(t); if (s === 'none' || s === 'old') { if (await libDownload(t) === false) break; } } } finally { LIB.bulk = false; libRefresh(); }
+}
+function libIco(t) {
+  const b = el('button', 'hdl'); b.type = 'button'; b.dataset.k = libKey(t); libIcoSet(b, t);
+  b.addEventListener('click', (e) => { e.stopPropagation(); const st = libState(t); if (st === 'ok') libRemove(t); else if (st !== 'busy') libDownload(t); });
+  b.addEventListener('keydown', (e) => e.stopPropagation());
+  return b;
+}
 function libRows(box) {
   box.textContent = ''; const q = (REC.q || '').trim().toLowerCase(), all = LIB.list, st = el('div', 'hls');
   if (LIB.state === 'load' && !all.length) { st.textContent = '正在讀取最新範本清單…'; box.append(st); return; }
@@ -2089,7 +2134,8 @@ function libRows(box) {
   else if (LIB.state === 'ok') { st.append(el('span', 'hpill ok', '已連線'), el('span', '', '範本庫 · 共 ' + all.length + ' 份最新版')); }
   else if (LIB.state === 'off') { const rt = el('button', 'hpill new', '離線 · 重試'); rt.type = 'button'; rt.addEventListener('click', libLoad); st.append(rt, el('span', '', '顯示 ' + new Date(LIB.t).toLocaleString('zh-HK', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' 嘅清單')); }
   else if (LIB.state === 'err') { const rt = el('button', 'hpill new', '重試'); rt.type = 'button'; rt.addEventListener('click', libLoad); st.append(rt, el('span', '', '讀取唔到範本庫,請檢查網絡')); }
-  box.append(st); if (!all.length) return;
+  { const ab = el('button', 'hall'); ab.type = 'button'; ab.addEventListener('click', libAll); st.append(ab); }
+  box.append(st); if (!all.length) { setTimeout(libRefresh, 0); return; }
   const deps = {}; for (const t of all) { const d = t.category || '未分類'; deps[d] = (deps[d] || 0) + 1; }
   if (LIB.dep !== '全部' && !deps[LIB.dep]) LIB.dep = '全部';
   const list = all.filter((t) => (LIB.dep === '全部' || (t.category || '未分類') === LIB.dep) && (!q || t.name.toLowerCase().includes(q) || (t.category || '').toLowerCase().includes(q)));
@@ -2098,13 +2144,13 @@ function libRows(box) {
   const grid = el('div', 'hgrid');
   if (!list.length) grid.append(el('p', 'hnote', '冇符合嘅範本'));
   for (const t of list) {
-    const c = el('button', 'hcard'); c.type = 'button'; c.title = t.name + (t.note ? ' — ' + t.note : '');
+    const c = el('div', 'hcard'); c.tabIndex = 0; c.setAttribute('role', 'button'); c.title = t.name + (t.note ? ' — ' + t.note : '');
     const th = el('div', 'hcth'); if (t.thumb_path) { const im = document.createElement('img'); im.loading = 'lazy'; im.alt = ''; im.src = LIB.base + encodeURI(t.thumb_path); im.addEventListener('error', () => { im.remove(); th.innerHTML = hsvg('doc', 22); }); th.append(im); } else th.innerHTML = hsvg('doc', 22);
     if (libNew(t)) th.append(el('span', 'hcb', '新版'));
-    const cv = libCm()[libKey(t)]; c.append(th, el('div', 'hcn', t.name), el('div', 'hcm', 'v' + t.version + (t.field_count ? ' · ' + t.field_count + ' 個欄位' : '') + (cv != null ? (cv >= t.version ? ' · 離線可用' : ' · 本機 v' + cv) : '')));
-    c.addEventListener('click', () => libOpen(t)); grid.append(c);
+    th.append(libIco(t)); c.append(th, el('div', 'hcn', t.name), el('div', 'hcm', 'v' + t.version + (t.field_count ? ' · ' + t.field_count + ' 個欄位' : '')));
+    c.addEventListener('click', () => libOpen(t)); c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); libOpen(t); } }); grid.append(c);
   }
-  wrap.append(dl, grid); box.append(wrap);
+  wrap.append(dl, grid); box.append(wrap); setTimeout(libRefresh, 0);
 }
 function showHome() { if (!S.pages.length) { syncHome(); return; } S.homeOpen = true; syncHome(); }
 function hideHome() { if (!S.homeOpen) return; S.homeOpen = false; syncHome(); }
