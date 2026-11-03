@@ -666,7 +666,7 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" fill="#0a8f8f"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" fill="#0a8f8f">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.63.3</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.63.4</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -1835,17 +1835,11 @@ async function printPdf() {
   setBusy(true, '準備列印…'); await tick();
   try {
     const bytes = await buildPdf(), embedded = window.top !== window.self;
-    if (!embedded) {   // 獨立頁面 / 已安裝:用隱藏 iframe 載入 PDF 直接列印(向量,最清晰)
-      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
-      const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none'; f.src = url;
-      const clean = () => { setTimeout(() => { f.remove(); URL.revokeObjectURL(url); }, 120000); };
-      f.onload = () => { setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, '_blank') || toast('呢個環境唔支援直接列印,請先「另存」再用 PDF 閱讀器列印'); } clean(); }, 400); };
-      document.body.append(f);
-    } else {   // 內嵌(例如 claude.ai):將每頁畫成圖,用本頁列印;沙盒唔准列印嘅話會有提示
+    {   // 一律將每頁畫成圖再列印(閱讀器內置列印唔一定畫到欄位入面打嘅字,尤其係中文)
       const doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise, root = document.createElement('div'); root.id = 'printroot';
       let sz = '';
       for (let n = 1; n <= doc.numPages; n++) {
-        const pgx = await doc.getPage(n), vp0 = pgx.getViewport({ scale: 1 }), vp = pgx.getViewport({ scale: 2.2 }), cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+        const pgx = await doc.getPage(n), vp0 = pgx.getViewport({ scale: 1 }), vp = pgx.getViewport({ scale: embedded ? 2.2 : 3 }), cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
         await pgx.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; if (n === 1) sz = Math.round(vp0.width) + 'pt ' + Math.round(vp0.height) + 'pt';
         root.append(cv);
       }
