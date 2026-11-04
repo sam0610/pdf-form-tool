@@ -694,7 +694,7 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" style="fill:var(--logo)"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" style="fill:var(--logo)">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.68.1</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.68.2</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -1208,6 +1208,7 @@ function buildWidgets(pg, wrap) {
     e.className = 'wfi'; w.el = e; if (w.ro) e.disabled = true;
     e.style.left = (w.x0 / pg.W * 100) + '%'; e.style.top = (w.y0 / pg.H * 100) + '%'; e.style.width = ((w.x1 - w.x0) / pg.W * 100) + '%'; e.style.height = ((w.y1 - w.y0) / pg.H * 100) + '%';
     if (w.kind === 'text' || w.kind === 'choice') { const fs = w.fsPt > 0 ? w.fsPt : w.multi ? 10 : Math.max(6, Math.min(14, hPt * 0.62)); e.style.fontSize = 'calc(var(--pw) * ' + (fs / ptW).toFixed(5) + ')'; }
+    if (w.kind === 'text') { if (w.ls) e.style.letterSpacing = 'calc(var(--pw) * ' + (w.ls / ptW).toFixed(5) + ')'; if (w.multi && w.lh) e.style.lineHeight = String(w.lh); }
     e.title = w.name;
     if (w.kind === 'text' && !w.multi) e.addEventListener('keydown', (ev) => { if (ev.key !== 'Enter') return; ev.preventDefault(); const list = [...document.querySelectorAll('#pages .wfi:not(:disabled)')], i = list.indexOf(e); if (list[i + 1]) list[i + 1].focus(); });
     layer.append(e);
@@ -1266,6 +1267,7 @@ async function loadPdf(bytes, name, isSample) {
     const doc = await pdfjsLib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
     const n = Math.min(doc.numPages, MAX_PAGES);
     const host = $('#pages'); host.textContent = '';
+    let flx = {}; try { const pd0 = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false }); for (const fl of pd0.getForm().getFields()) { if (!(fl instanceof PDFLib.PDFTextField)) continue; const g = (k) => { const v = fl.acroField.dict.lookup(PDFLib.PDFName.of(k)); return v && v.asNumber ? v.asNumber() : 0; }; const ls = g('FLSp'), lh = g('FLLh'); if (ls || lh) flx[fl.getName()] = { ls, lh }; } } catch (e) { /* 冇自訂字距／行距 */ }
     S.pdoc = doc; S.pages = []; S.sel = null; S.msel = []; S.bytes = bytes; S.name = name; S.sample = !!isSample;
     if (S.hooks.reset) S.hooks.reset();
     for (let i = 1; i <= n; i++) {
@@ -1278,7 +1280,7 @@ async function loadPdf(bytes, name, isSample) {
       const ctx = cv.getContext('2d', { willReadFrequently: true });
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
       let wf = [];
-      try { wf = widgetsOf(await page.getAnnotations({ intent: 'display' }), vp); } catch (e) { /* 冇註解 */ }
+      try { wf = widgetsOf(await page.getAnnotations({ intent: 'display' }), vp); for (const w of wf) { const x = flx[w.name]; if (x) { w.ls = x.ls; w.lh = x.lh; } } } catch (e) { /* 冇註解 */ }
       const am = wf.length ? 2 : 1;
       await page.render({ canvasContext: ctx, viewport: vp, annotationMode: am }).promise;
       const id = ctx.getImageData(0, 0, cv.width, cv.height).data, W = cv.width, H = cv.height, gray = new Uint8Array(W * H);
@@ -1637,6 +1639,26 @@ function deleteSel() {
 }
 
 /* ------------------------------------------------------------------ 輸出可填寫 PDF */
+/* v3.68.2 多行／有字距／行距嘅文字欄:自己寫外觀串流,對齊 (Q)、行距 (FLLh)、字距 (FLSp) 同畫面一致;只支援 Helvetica 可編碼嘅字,其他(中文)會 throw,交俾閱讀器重繪 */
+function spacedAP(doc, tf, w, val, cf) {
+  const rc = tf.acroField.getWidgets()[0].getRectangle(), W = rc.width, H = rc.height, ml = tf.isMultiline();
+  const fs = w.fsPt > 0 ? w.fsPt : ml ? 10 : Math.max(6, Math.min(14, H * 0.62)), ls = w.ls || 0, lhp = (w.lh || 1.15) * fs, pad = 2, avail = W - 2 * pad;
+  const wid = (t) => cf.widthOfTextAtSize(t, fs) + ls * Math.max(0, t.length - 1);
+  let lines = [];
+  for (const para of val.split(/\r?\n/)) {
+    if (!ml) { lines.push(para); continue; }
+    let cur = '';
+    for (const ch of [...para]) { if (cur && wid(cur + ch) > avail) { const sp = cur.lastIndexOf(' '); if (sp > 0 && ch !== ' ') { lines.push(cur.slice(0, sp)); cur = cur.slice(sp + 1) + ch; } else { lines.push(cur); cur = ch === ' ' ? '' : ch; } } else cur += ch; }
+    lines.push(cur);
+  }
+  if (!ml) lines = lines.slice(0, 1);
+  const first = ml ? H - pad - ((lhp - fs) / 2 + fs * 0.88) : H / 2 - fs * 0.33;
+  let ops = '/Tx BMC q\n' + pad + ' 0 ' + (W - 2 * pad) + ' ' + H + ' re W n BT /F1 ' + fs + ' Tf 0 0 0.55 rg\n';
+  lines.forEach((ln, i) => { const lw = wid(ln), x = w.q === 1 ? (W - lw) / 2 : w.q === 2 ? W - pad - lw : pad; ops += ls + ' Tc 1 0 0 1 ' + x.toFixed(2) + ' ' + (first - i * lhp).toFixed(2) + ' Tm ' + (ln ? cf.encodeText(ln).toString() : '<>') + ' Tj\n'; });
+  ops += 'ET Q EMC';
+  const ctx = doc.context, ref = ctx.register(ctx.stream(ops, { Type: 'XObject', Subtype: 'Form', BBox: [0, 0, W, H], Resources: { Font: { F1: cf.ref } } }));
+  tf.acroField.getWidgets()[0].setNormalAppearance(ref);
+}
 async function buildPdf() {
   const { PDFDocument, PDFName, PDFString, PDFHexString, PDFBool, PDFDict, PDFArray, rgb } = PDFLib;
   const pdf = await PDFDocument.load(S.bytes, { ignoreEncryption: true });
@@ -1716,14 +1738,14 @@ async function buildPdf() {
     fieldsArr.set(i, kref);
   }
   /* 套用喺畫面上填寫過嘅原有欄位 */
-  { let changed = false, helv = null;
+  { let changed = false, helv = null; const handledAP = new Set();
     for (const pg of S.pages) for (const w of pg.wf || []) {
       if (!w.dirty) continue;
       try {
         const fld = form.getFieldMaybe(w.name); if (!fld) continue;
         if (w.kind === 'text' && fld instanceof PDFLib.PDFTextField) {
           fld.setText(String(w.value || '')); changed = true;
-          try { helv = helv || await pdf.embedFont(PDFLib.StandardFonts.Helvetica); fld.updateAppearances(helv); } catch (e) { /* 中文等:交俾閱讀器重繪 */ }
+          try { helv = helv || await pdf.embedFont(PDFLib.StandardFonts.Helvetica); if (w.multi || w.ls || w.lh) { spacedAP(pdf, fld, w, String(w.value || ''), helv, pg.vp.scale); handledAP.add(w.name); } else fld.updateAppearances(helv); } catch (e) { /* 中文等:交俾閱讀器重繪 */ }
         } else if (w.kind === 'check' && fld instanceof PDFLib.PDFCheckBox) { w.value === 'Off' ? fld.uncheck() : fld.check(); changed = true; }
         else if (w.kind === 'radio' && fld instanceof PDFLib.PDFRadioGroup) {
           const opts = fld.getOptions(); let o = w.bv;
@@ -1733,7 +1755,8 @@ async function buildPdf() {
         else if (w.kind === 'choice' && (fld instanceof PDFLib.PDFDropdown || fld instanceof PDFLib.PDFOptionList)) { const v = Array.isArray(w.value) ? w.value : [w.value]; v.length && v[0] !== '' ? fld.select(v.length > 1 ? v : v[0]) : fld.clear(); changed = true; }
       } catch (e) { console.warn('套用欄位失敗', w.name, e.message); }
     }
-    if (changed) form.acroForm.dict.set(PDFName.of('NeedAppearances'), PDFBool.True);
+    const needNA = S.pages.some((pg) => (pg.wf || []).some((w) => w.dirty && !(w.kind === 'text' && handledAP.has(w.name))));
+    if (changed && needNA) form.acroForm.dict.set(PDFName.of('NeedAppearances'), PDFBool.True);
   }
   if (S.hooks.drawMarks) await S.hooks.drawMarks(pdf);
   return await pdf.save({ updateFieldAppearances: false });
