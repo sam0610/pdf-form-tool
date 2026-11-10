@@ -688,13 +688,33 @@ body.fpainting .wf { display: none; }
 .vpop input[type=number] { width: 70px; }
 .vpop .mi { display: flex; gap: 10px; align-items: center; border: 0; background: transparent; padding: 8px 10px; border-radius: 6px; cursor: pointer; text-align: left; width: 100%; font-size: 14px; }
 .vpop .mi:hover { background: var(--accent-soft); }
+
+/* ---------- 手機:介面鎖喺螢幕高度入面(唔再成頁捲動,頂同底永遠睇到),淨係文件區捲動 ---------- */
+@media (max-width: 900px) {
+  html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+  #app { height: 100vh; height: 100dvh; }
+  .work { flex: 1 1 0; min-height: 0; }
+  .work > .stage-wrap { flex: 1 1 0; min-height: 0; }
+  .stage { flex: 1 1 0; min-height: 0; max-height: none; touch-action: pan-x pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .work > .ctxbar { flex: 0 0 auto; max-height: 36vh; max-height: 36dvh; overflow-y: auto; min-height: 0; }
+  .cbempty { display: none; }
+  .work > .ctxbar:has(> #cb-empty:not([hidden])):not(:has(> #ctabs:not([hidden]))) { display: none; }   /* 冇嘢可改就唔佔位 */
+  .appbar { flex-wrap: nowrap; padding-block: 4px; gap: 8px; }
+  .brand b, .brand .ver { display: none; }
+  .dtabs { margin-left: 0; }
+  .statusbar { flex-wrap: nowrap; gap: 6px; padding-block: 2px; }
+  #stat { display: none; }
+  .statusbar .lyb button { width: 32px; height: 32px; }
+  .statusbar .zb { width: 36px; height: 32px; }
+  .statusbar button.zoomv { height: 32px; min-width: 52px; }
+}
 </style>
 
 <div id="app">
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" style="fill:var(--logo)"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" style="fill:var(--logo)">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.68.2</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.69.0</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -713,7 +733,7 @@ body.fpainting .wf { display: none; }
     <span style="flex:1"></span><button class="btn ib flat" id="undo" disabled title="復原(Ctrl/Cmd+Z)" aria-label="復原"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button><button class="btn ib flat" id="redo" disabled title="重做(Ctrl/Cmd+Shift+Z)" aria-label="重做"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
     </div>
     <div class="tpanel gut" id="pn-file" role="tabpanel" aria-labelledby="tab-file" hidden>
-      <div class="grp"><div class="ctl"><button class="btn ib" id="open" data-lb="開啟" title="開啟 PDF" aria-label="開啟 PDF"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V6a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 18l3-8h16l-3 8z"/></svg></button><button class="btn ib" id="save" data-lb="儲存" disabled title="儲存:直接覆蓋原檔(Ctrl+S)。Chrome / Edge 支援;其他瀏覽器會改為下載" aria-label="儲存"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></button><button class="btn ib primary" id="export" data-lb="另存" disabled title="另存新檔:揀位置同檔名(Chrome / Edge;其他瀏覽器改為下載)" aria-label="另存新檔"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v3M6 3v18h6"/><path d="M13 20l.7-3L20 10.7l2.3 2.3L16 19.3z"/></svg></button><button class="btn ib" id="print" data-lb="列印" disabled title="列印(Ctrl+P):列印包含所有編輯嘅 PDF" aria-label="列印"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5"/><path d="M7 17H5a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg></button><button class="btn ib" id="close-file" data-lb="關閉" disabled title="關閉檔案" aria-label="關閉檔案"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M10 11l5 5M15 11l-5 5"/></svg></button></div></div>
+      <div class="grp"><div class="ctl"><button class="btn ib" id="open" data-lb="開啟" title="開啟 PDF" aria-label="開啟 PDF"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V6a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 18l3-8h16l-3 8z"/></svg></button><button class="btn ib" id="save" data-lb="儲存" disabled title="儲存:直接覆蓋原檔(Ctrl+S)。Chrome / Edge 支援;其他瀏覽器會改為下載" aria-label="儲存"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg></button><button class="btn ib primary" id="export" data-lb="另存" disabled title="另存新檔:揀位置同檔名(Chrome / Edge;其他瀏覽器改為下載)" aria-label="另存新檔"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v3M6 3v18h6"/><path d="M13 20l.7-3L20 10.7l2.3 2.3L16 19.3z"/></svg></button><button class="btn ib" id="print" data-lb="列印" disabled title="列印(Ctrl+P):列印包含所有編輯嘅 PDF" aria-label="列印"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5"/><path d="M7 17H5a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/></svg></button><button class="btn ib" id="print-img" data-lb="圖像列印" disabled title="圖像列印:將每頁轉成圖片再列印,冇頁首頁尾,紙張大小同方向自動配合(唔使調列印設定)" aria-label="圖像列印"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5"/><path d="M7 17H5a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/><path d="M9 19.5l2-2 1.5 1.5 1-1 1.5 1.5"/></svg></button><button class="btn ib" id="close-file" data-lb="關閉" disabled title="關閉檔案" aria-label="關閉檔案"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M10 11l5 5M15 11l-5 5"/></svg></button></div></div>
     </div>
     <div class="tpanel gut" id="pn-view" role="tabpanel" aria-labelledby="tab-view" hidden>
       <div class="grp"><div class="ctl">
@@ -948,7 +968,7 @@ function toast(msg, ms = 3200) {
   clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), ms);
 }
 const tick = () => new Promise((r) => setTimeout(r, 0));
-function setBusy(on, text) { $('#busy').classList.toggle('on', on); if (text) $('#busyt').textContent = text; S.busy = on; $('#export').disabled = $('#save').disabled = $('#print').disabled = on || !S.pages.length; $('#close-file').disabled = on || !S.pages.length; }
+function setBusy(on, text) { $('#busy').classList.toggle('on', on); if (text) $('#busyt').textContent = text; S.busy = on; $('#export').disabled = $('#save').disabled = $('#print').disabled = $('#print-img').disabled = on || !S.pages.length; $('#close-file').disabled = on || !S.pages.length; }
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
 /* ------------------------------------------------------------------ 影像運算(純 JS,取代 OpenCV) */
@@ -1472,7 +1492,7 @@ function updateStatus() {
     nt.hidden = true; nt.textContent = ''; void none; }
   $('#dn-name').textContent = S.pages.length ? S.name : '';
   $('#dn-meta').textContent = S.pages.length ? S.pages.length + ' 頁' + (S.sample ? ' · 範例' : '') : '';
-  $('#export').disabled = $('#save').disabled = $('#print').disabled = S.busy || !S.pages.length; $('#close-file').disabled = S.busy || !S.pages.length;
+  $('#export').disabled = $('#save').disabled = $('#print').disabled = $('#print-img').disabled = S.busy || !S.pages.length; $('#close-file').disabled = S.busy || !S.pages.length;
   renderTabs();
   if (S.hooks.after) S.hooks.after();
 }
@@ -1907,6 +1927,45 @@ async function printPdf() {
   finally { setBusy(false); }
 }
 $('#print').addEventListener('click', printPdf);
+
+/* 圖像列印(獨立功能,唔影響上面嘅 printPdf / Ctrl+P):
+   每頁渲染成圖 → 合併成純圖 PDF(頁面尺寸跟原 PDF)→ 交俾 Chrome 內置 PDF 檢視器列印。
+   無頁首頁尾,紙張大小/方向自動配合,欄位入面嘅字(包括中文)照印。 */
+let _imgPrint = null;
+async function buildImagePdf(srcBytes, scale) {
+  const src = await pdfjsLib.getDocument({ data: srcBytes.slice() }).promise, out = await PDFLib.PDFDocument.create();
+  for (let n = 1; n <= src.numPages; n++) {
+    const pg = await src.getPage(n), vp0 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: scale });
+    const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(vp.width)); cv.height = Math.max(1, Math.round(vp.height));
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+    await pg.render({ canvasContext: cx, viewport: vp }).promise;
+    const blob = await new Promise((r) => cv.toBlob(r, 'image/jpeg', 0.92));
+    if (!blob) throw new Error('第 ' + n + ' 頁轉圖失敗');
+    const img = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
+    const page = out.addPage([vp0.width, vp0.height]); page.drawImage(img, { x: 0, y: 0, width: vp0.width, height: vp0.height });
+    cv.width = cv.height = 0; if (pg.cleanup) pg.cleanup();
+  }
+  return await out.save();
+}
+async function printAsImagePdf() {
+  if (!S.pages.length || S.busy) return;
+  setBusy(true, '準備圖像列印…'); await tick();
+  try {
+    const bytes = await buildPdf(), pdfBytes = await buildImagePdf(bytes, 2.5);
+    if (_imgPrint) { try { _imgPrint.fr.remove(); URL.revokeObjectURL(_imgPrint.url); } catch (e) { /* 忽略 */ } _imgPrint = null; }
+    const url = URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
+    if (navigator.pdfViewerEnabled === false) { window.open(url, '_blank'); toast('已開啟圖像 PDF,請用 Ctrl+P 列印', 6000); return; }
+    const fr = document.createElement('iframe'); fr.setAttribute('aria-hidden', 'true'); fr.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+    _imgPrint = { fr, url };
+    let done = false;
+    const go = () => { if (done) return; done = true; try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (e) { console.warn('iframe 列印失敗,改為開新頁', e); window.open(url, '_blank'); toast('已開啟圖像 PDF,請用 Ctrl+P 列印', 6000); } };
+    fr.addEventListener('load', () => setTimeout(go, 700));
+    setTimeout(go, 4000);   // 保險:load 事件冇觸發都照列印
+    fr.src = url; document.body.append(fr);
+  } catch (e) { console.error(e); toast('圖像列印失敗:' + (e && e.message ? e.message : e)); }
+  finally { setBusy(false); }
+}
+$('#print-img').addEventListener('click', printAsImagePdf);
 window.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'p' && S.pages.length) { e.preventDefault(); printPdf(); } }, true);
 async function savePdf(asNew) {   // asNew = 另存:一定彈出「另存新檔」
   if (!S.pages.length || S.busy) return;
@@ -2294,6 +2353,19 @@ function setZoom(z, ax, ay) {
 }
 function stepZoom(dir) { const z = S.zoom; let n; if (dir > 0) n = ZSTEPS.find((v) => v > z + 1e-4) || ZMAX; else n = [...ZSTEPS].reverse().find((v) => v < z - 1e-4) || ZMIN; setZoom(n); }
 function zoom(d) { setZoom(S.zoom + d); }
+{ // 兩指捏合縮放(手機/平板):以兩指中點做中心;Safari 自帶嘅成頁縮放要擋咗
+  const st = $('#stage'); let p0 = null, raf = 0, last = null;
+  const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  st.addEventListener('touchstart', (e) => { p0 = e.touches.length === 2 ? { d: dist(e.touches) || 1, z: S.zoom } : null; }, { passive: true });
+  st.addEventListener('touchmove', (e) => {
+    if (!p0 || e.touches.length !== 2) return; e.preventDefault();
+    const r = st.getBoundingClientRect(); last = { z: p0.z * dist(e.touches) / p0.d, x: (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top };
+    if (!raf) raf = requestAnimationFrame(() => { raf = 0; if (last) setZoom(last.z, last.x, last.y); });
+  }, { passive: false });
+  const end = (e) => { if (e.touches.length < 2) p0 = null; };
+  st.addEventListener('touchend', end, { passive: true }); st.addEventListener('touchcancel', end, { passive: true });
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach((n) => st.addEventListener(n, (e) => e.preventDefault()));
+}
 function baseDims() {   // 縮放 = 1 時,目前頁面喺畫面上嘅 CSS 闊/高(已計入檢視旋轉)
   const pg = S.pages[Math.max(0, S.cur || 0)] || S.pages[0], wrap = $('#pages .pg.vcur') || $('#pages .pg'); if (!pg || !wrap) return null;
   const w = wrap.offsetWidth / S.zoom, h = w * pg.H / pg.W; return S.vrot % 180 ? { w: h, h: w } : { w, h };
@@ -3433,7 +3505,7 @@ for (const b of document.querySelectorAll('#mk-arr [data-arr]')) b.addEventListe
 $('#arr-del').addEventListener('click', delMulti);
 function delCell(pi, c) { const pg = S.pages[pi]; if (!pg || !c) return; (pg.dismissed = pg.dismissed || []).push({ x0: c.x0, y0: c.y0, x1: c.x1, y1: c.y1 }); if (pg.cells) pg.cells = pg.cells.filter((x) => x !== c); if (S.actCell && S.actCell.c === c) S.actCell = null; renderHints(pi); toast('已刪除呢個偵測格', 1800); }
 function delMark() { const m = S.selMark; if (!m) return; S.marks.splice(S.marks.indexOf(m), 1); selectMark(null); updateExportState(); record(); }
-function updateExportState() { $('#export').disabled = $('#save').disabled = $('#print').disabled = S.busy || !S.pages.length; }
+function updateExportState() { $('#export').disabled = $('#save').disabled = $('#print').disabled = $('#print-img').disabled = S.busy || !S.pages.length; }
 document.addEventListener('keydown', (e) => {
   const tag = (e.target && e.target.tagName) || ''; if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || !M.back.hidden) return;
   if ((e.key === 'Delete' || e.key === 'Backspace') && S.multi.length > 1) { e.preventDefault(); delMulti(); }
