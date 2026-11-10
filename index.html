@@ -391,7 +391,7 @@ body.mkmode .mk.mu, .mk.mu { pointer-events: none; outline: none !important; cur
   .docname { display: none; }
   .tip { display: none; }
   .statusbar { order: 2; }
-  #app:has(.work.homeview) { height: 100vh; height: 100dvh; }
+  #app:has(.work.homeview) { height: 100%; max-height: 100vh; max-height: 100dvh; }
   .work.homeview { flex: 1; min-height: 0; }
   .home .hl { flex-basis: 100%; border-right: 0; border-bottom: 1px solid var(--line); min-height: 0; padding: 16px; }
   .home .hr2 { flex-basis: 100%; min-height: 0; padding: 16px; }
@@ -695,7 +695,7 @@ body.fpainting .wf { display: none; }
 /* ---------- 手機:介面鎖喺螢幕高度入面(唔再成頁捲動,頂同底永遠睇到),淨係文件區捲動 ---------- */
 @media (max-width: 900px) {
   html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
-  #app { height: 100vh; height: 100dvh; }
+  #app { height: 100%; max-height: 100vh; max-height: 100dvh; }   /* 100% = 已扣走安全區 padding;max-height 防瀏覽器工具列 */
   .work { flex: 1 1 0; min-height: 0; }
   .work > .stage-wrap { flex: 1 1 0; min-height: 0; }
   .stage { flex: 1 1 0; min-height: 0; max-height: none; touch-action: pan-x pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
@@ -717,7 +717,7 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" style="fill:var(--logo)"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" style="fill:var(--logo)">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.69.1</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.69.2</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
