@@ -604,6 +604,9 @@ body.fpainting .ov { cursor: copy; }
 .wf .wfi { background: rgba(234, 122, 12, .12); border: 1px solid rgba(234, 122, 12, .55); color: #00008b; padding: 0 .15em; font-family: inherit; outline: none; border-radius: 2px; line-height: 1.15; }
 .wf .wfi:focus { background: rgba(234, 122, 12, .22); box-shadow: 0 0 0 2px var(--accent, #2563eb); z-index: 2; }
 .wf textarea.wfi { resize: none; padding-top: .1em; }
+.wf button.wfi { cursor: pointer; font: 600 11px/1 system-ui, sans-serif; color: #b45309; display: flex; align-items: center; justify-content: center; border-style: dashed; overflow: hidden; white-space: nowrap; }
+.wf button.wfi.signed { background: transparent; border-color: transparent; }
+.wf button.wfi.signed:hover { border-color: rgba(234, 122, 12, .55); }
 .wf input[type=checkbox].wfi, .wf input[type=radio].wfi { appearance: auto; margin: 0; accent-color: var(--accent); padding: 0; }
 body.placing .wf > *, .pages:not([data-vrot="0"]) .wf > *, body.painting .wf > * { pointer-events: none !important; }
 body.fpainting .wf { display: none; }
@@ -714,7 +717,7 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" style="fill:var(--logo)"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" style="fill:var(--logo)">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.69.0</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.69.1</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -1256,6 +1259,7 @@ function importWidgets() {
   });
   if (n) { renderAllOverlays(); renderList(); renderEditor(); updateStatus(); toast('已將 ' + n + ' 個原有欄位轉為可編輯'); }
 }
+S.hooks.fieldLayers = () => fieldInputLayers();
 const wfDirty = () => S.pages.some((p) => (p.wf || []).some((w) => w.dirty)); S.wfDirty = wfDirty;
 
 /* 返去「填寫」:由原有欄位轉出嚟嘅欄位,用輸入框顯示,可以直接填 */
@@ -1263,16 +1267,21 @@ function fieldInputLayers() {
   const on = S.tab !== 'add' || document.body.classList.contains('fldlock');   // 編輯欄位閂咗(或唔喺制作表單)= 所有欄位可填
   for (const pg of S.pages) {
     const wrap = pg.ov && pg.ov.parentNode; if (!wrap) continue; const old = wrap.querySelector('.wf.wfx'); if (old) old.remove();
-    const list = on ? pg.fields.filter((f) => f.kind !== 'sign') : []; if (!list.length) continue;
+    const list = on ? pg.fields.slice() : []; if (!list.length) continue;
     const layer = el('div', 'wf wfx'), ptW = pg.vp.width / pg.vp.scale;
     for (const f of list) {
       let e; const hPt = (f.y1 - f.y0) / pg.vp.scale;
-      if (f.kind === 'check') { e = document.createElement('input'); e.type = 'checkbox'; e.checked = !!f.value; e.addEventListener('change', () => { f.value = e.checked; }); }
+      if (f.kind === 'sign') {   // 簽名欄(v3.68.3):撳一下 → 揀已儲存簽名 / 新增,放入格內
+        e = document.createElement('button'); e.type = 'button'; const signed = S.marks.some((m) => m.signFor === f.id);
+        e.classList.toggle('signed', signed); e.textContent = signed ? '' : '✍ 撳此簽名'; e.setAttribute('aria-label', '簽名:撳一下揀簽署');
+        e.addEventListener('click', () => { if (S.hooks.signField) S.hooks.signField(f, pg, e); });
+      }
+      else if (f.kind === 'check') { e = document.createElement('input'); e.type = 'checkbox'; e.checked = !!f.value; e.addEventListener('change', () => { f.value = e.checked; }); }
       else if (f.kind === 'dropdown') { e = document.createElement('select'); e.append(new Option('', '')); for (const o of (f.opts || []).filter(Boolean)) e.append(new Option(o, o)); e.value = f.value || ''; e.addEventListener('change', () => { f.value = e.value; }); }
       else { e = document.createElement(f.multiline ? 'textarea' : 'input'); if (!f.multiline) e.type = 'text'; e.value = f.value || ''; e.style.textAlign = ['left', 'center', 'right'][f.q || 0] || 'left'; e.addEventListener('input', () => { f.value = e.value; }); }
       e.className = 'wfi'; e.title = f.name || '';
       e.style.left = (f.x0 / pg.W * 100) + '%'; e.style.top = (f.y0 / pg.H * 100) + '%'; e.style.width = ((f.x1 - f.x0) / pg.W * 100) + '%'; e.style.height = ((f.y1 - f.y0) / pg.H * 100) + '%';
-      if (f.kind !== 'check') { const fs = f.fs > 0 ? f.fs : f.multiline ? 10 : Math.max(6, Math.min(14, hPt * 0.62)); e.style.fontSize = 'calc(var(--pw) * ' + (fs / ptW).toFixed(5) + ')'; }
+      if (f.kind !== 'check' && f.kind !== 'sign') { const fs = f.fs > 0 ? f.fs : f.multiline ? 10 : Math.max(6, Math.min(14, hPt * 0.62)); e.style.fontSize = 'calc(var(--pw) * ' + (fs / ptW).toFixed(5) + ')'; }
       if (f.kind === 'check') e.style.accentColor = '#d62828';
       layer.append(e);
     }
@@ -1393,7 +1402,11 @@ function renderOverlay(pi) {
 }
 /* ---- 輸入模式:偵測輸入格後直接喺頁面打字(輸出時仍然係可再編輯嘅 PDF 表單欄位) ---- */
 function fillCell(d, f, pg) {
-  if (f.kind === 'sign') { d.append(el('span', 'bd', '簽名')); return; }
+  if (f.kind === 'sign') {   // 簽名欄:撳一下 → 揀已儲存簽名 / 新增,自動置中縮放入格
+    d.append(el('span', 'bd', '簽名')); d.style.cursor = 'pointer'; d.tabIndex = 0; d.setAttribute('role', 'button'); d.setAttribute('aria-label', '簽名:撳一下揀簽署');
+    const go = () => { if (S.hooks.signField) S.hooks.signField(f, pg, d); };
+    d.addEventListener('click', go); d.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); go(); } }); return;
+  }
   if (f.kind === 'check') {
     const mark = () => { d.textContent = f.value ? '✔' : ''; d.classList.toggle('on', !!f.value); };
     d.style.cursor = 'pointer'; d.tabIndex = 0; mark();
@@ -1659,7 +1672,7 @@ function deleteSel() {
 }
 
 /* ------------------------------------------------------------------ 輸出可填寫 PDF */
-/* v3.68.2 多行／有字距／行距嘅文字欄:自己寫外觀串流,對齊 (Q)、行距 (FLLh)、字距 (FLSp) 同畫面一致;只支援 Helvetica 可編碼嘅字,其他(中文)會 throw,交俾閱讀器重繪 */
+/* v3.68.3 多行／有字距／行距嘅文字欄:自己寫外觀串流,對齊 (Q)、行距 (FLLh)、字距 (FLSp) 同畫面一致;只支援 Helvetica 可編碼嘅字,其他(中文)會 throw,交俾閱讀器重繪 */
 function spacedAP(doc, tf, w, val, cf) {
   const rc = tf.acroField.getWidgets()[0].getRectangle(), W = rc.width, H = rc.height, ml = tf.isMultiline();
   const fs = w.fsPt > 0 ? w.fsPt : ml ? 10 : Math.max(6, Math.min(14, H * 0.62)), ls = w.ls || 0, lhp = (w.lh || 1.15) * fs, pad = 2, avail = W - 2 * pad;
@@ -4020,6 +4033,31 @@ function openSigMenu() {
   const r = $('#mc-sigmenu').getBoundingClientRect(); sigm.hidden = false; sigm.style.left = Math.max(8, Math.min(r.left, innerWidth - sigm.offsetWidth - 8)) + 'px'; sigm.style.top = (r.bottom + 4) + 'px';
   $('#mc-sigmenu').setAttribute('aria-expanded', 'true');
 }
+/* 簽名欄(輸入模式):撳格 → 同一個簽名選單,揀咗就放入格內 */
+let signTarget = null;
+async function fillSignInto(f, pg, t) {
+  const pi = S.pages.indexOf(pg); if (pi < 0) return;
+  let ratio = 3; try { const im = await loadImg(t.src); ratio = im.naturalWidth / im.naturalHeight || 3; } catch (e) { /* 預設比例 */ }
+  const fw = f.x1 - f.x0, fh = f.y1 - f.y0, w = Math.max(12, Math.min(fw * 0.96, fh * 0.92 * ratio)), h = w / ratio, cx = (f.x0 + f.x1) / 2, cy = (f.y0 + f.y1) / 2;
+  // 同一格重新簽:取代舊簽名
+  const old = S.marks.filter((m) => m.signFor === f.id && m.page === pi); if (old.length) S.marks = S.marks.filter((m) => !old.includes(m));
+  const m = { id: mkSeq++, page: pi, kind: 'img', src: t.src, white: !!t.white, wPt: w / pg.vp.scale, x0: cx - w / 2, x1: cx + w / 2, y0: cy - h / 2, y1: cy + h / 2, signFor: f.id };
+  S.marks.push(m); await refreshMark(m); renderMarks(pi); updateExportState(); record(); if (S.hooks.fieldLayers) S.hooks.fieldLayers(); toast('已簽署');
+}
+S.hooks.signField = (f, pg, d) => {
+  const lib = lsGet(LIBK) || []; sigm.textContent = '';
+  sigm.append(el('div', 'ctx-h', lib.length ? '揀簽名放入呢格' : '未有已儲存嘅簽名'));
+  lib.forEach((x, i) => {
+    const b = el('button', 'sigit'); b.type = 'button'; b.setAttribute('role', 'menuitem'); b.setAttribute('aria-label', '簽署 ' + (i + 1));
+    const im = new Image(); im.src = x.src; im.alt = ''; b.append(im);
+    b.addEventListener('click', () => { closeSigMenu(); fillSignInto(f, pg, { src: x.src, white: !!x.white }); });
+    sigm.append(b);
+  });
+  sigm.append(el('hr'));
+  const nw = el('button', 'sigit edit', '新增簽署…'); nw.type = 'button'; nw.setAttribute('role', 'menuitem'); nw.addEventListener('click', () => { closeSigMenu(); signTarget = { f, pg }; signDialog(false); }); sigm.append(nw);
+  if (S.marks.some((m) => m.signFor === f.id)) { const rm = el('button', 'sigit edit', '清除呢格簽名'); rm.type = 'button'; rm.addEventListener('click', () => { closeSigMenu(); const pi = S.pages.indexOf(pg); S.marks = S.marks.filter((m) => m.signFor !== f.id); renderMarks(pi); updateExportState(); record(); if (S.hooks.fieldLayers) S.hooks.fieldLayers(); }); sigm.append(rm); }
+  const r = d.getBoundingClientRect(); sigm.hidden = false; sigm.style.left = Math.max(8, Math.min(r.left, innerWidth - sigm.offsetWidth - 8)) + 'px'; sigm.style.top = Math.min(r.bottom + 4, innerHeight - sigm.offsetHeight - 8) + 'px';
+};
 $('#mc-sigmenu').addEventListener('click', (e) => { e.stopPropagation(); if (sigm.hidden) openSigMenu(); else closeSigMenu(); });
 document.addEventListener('pointerdown', (e) => { if (!sigm.hidden && !sigm.contains(e.target) && e.target !== $('#mc-sigmenu')) closeSigMenu(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sigm.hidden) closeSigMenu(); });
@@ -4078,6 +4116,7 @@ $('#mc-file').addEventListener('change', async (e) => { const f = e.target.files
   if (fe) editSigs(); });
 const SGI = (p) => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
 function signDialog(fromEdit) {
+  const tgt = signTarget; signTarget = null;
   const { body, foot } = openModal('新增簽署');
   let tab = 'draw', upImg = null;
   const tabs = el('div', 'sgtabs'); tabs.setAttribute('role', 'tablist');
@@ -4179,6 +4218,7 @@ function signDialog(fromEdit) {
     else { if (cropMode) { cropMode = false; upOut = procImg(); } if (!upOut) { toast('請先揀圖片'); return; } r = { url: upOut.toDataURL('image/png'), wPt: 130, label: '圖片' }; }
     closeModal();
     if (fromEdit) { await addImage(r.url, false, r.wPt, r.label, false); editSigs(); }
+    else if (tgt) { if (svc.checked) await addImage(r.url, false, r.wPt, r.label, false); await fillSignInto(tgt.f, tgt.pg, { src: r.url, white: false }); }
     else if (svc.checked) await addImage(r.url, false, r.wPt, r.label, true);
     else setPending({ kind: 'img', src: r.url, white: false, wPt: r.wPt });
   });
@@ -4875,5 +4915,4 @@ $('#new-kind').addEventListener('change', () => { document.body.classList.remove
   new MutationObserver((ms) => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1) run(n); }).observe(document.body, { childList: true, subtree: true });
 })();
 </script>
-
 <script>if('serviceWorker' in navigator && location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script></body></html>
