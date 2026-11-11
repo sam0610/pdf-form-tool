@@ -720,7 +720,6 @@ body.fpainting .wf { display: none; }
   .tabbar .tab { flex: 1 1 0; min-width: 0; padding-inline: 2px !important; margin: 0; border-bottom: 0; border-radius: 12px; min-height: 52px; }
   .tabbar .tab[aria-selected="true"] { background: var(--accent-soft); }
   .tpanel { border-bottom: 0; }
-  #undo, #redo { flex: 0 0 auto; width: 44px; height: 44px; }
   #app:has(.work.homeview) .ribbon { display: none; }
   .home .hl { flex: 0 0 auto; flex-direction: row; align-items: stretch; gap: 10px; padding: 12px 16px 0; border-bottom: 0; background: transparent; }
   .home .hdz { flex: 1.5 1 0; min-width: 0; min-height: 0; padding: 0; border: 0; background: transparent; }
@@ -748,13 +747,21 @@ body.fpainting .wf { display: none; }
   .home .hsec { padding-inline: 8px; gap: 6px; }
   .home .hsec span { white-space: nowrap; font-size: 13px; }
 }
+
+/* 復原 / 重做:頂列 logo 旁邊,掣大啲 */
+.uredo { display: flex; align-items: center; gap: 2px; padding: 0 6px; margin-left: 2px; border-left: 1px solid var(--bar-line); border-right: 1px solid var(--bar-line); flex: none; }
+.uredo .btn.ib { width: 40px; height: 40px; border-radius: 8px; border-color: transparent; }
+.uredo .btn.ib .ic { width: 22px; height: 22px; }
+.uredo .btn.ib:not(:disabled) { background: color-mix(in srgb, var(--bar-ink) 10%, transparent); }
+.uredo .btn.ib:disabled { opacity: .4; }
+@media (max-width: 900px) { .uredo { border: 0; padding: 0; margin-left: auto; } .uredo .btn.ib { width: 44px; height: 44px; } }
 </style>
 
 <div id="app">
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" style="fill:var(--logo)"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" style="fill:var(--logo)">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.70.2</span>
+      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.71.0</span>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
@@ -1977,10 +1984,9 @@ async function printPdf() {
   finally { setBusy(false); }
 }
 $('#print').addEventListener('click', printPdf);
-{ // 手機:還原/重做搬去頂部(底部分頁要成行六個位);闊屏搬返原位
-  const u = $('#undo'), r = $('#redo'), tb = u.parentNode, hb = $('.appbar'), sp = hb.querySelector('.sp'), mq = window.matchMedia('(max-width: 900px)');
-  const place = () => { if (mq.matches) { sp.after(u, r); } else { tb.append(u, r); } };
-  place(); if (mq.addEventListener) mq.addEventListener('change', place); else mq.addListener(place);
+{ // 還原/重做:搬去頂列 logo 旁邊(每個畫面都喺度,唔使跨去分頁列最右)
+  const u = $('#undo'), r = $('#redo'), g = document.createElement('div'); g.className = 'uredo'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', '復原與重做');
+  g.append(u, r); $('.appbar .brand').after(g);
 }
 
 
