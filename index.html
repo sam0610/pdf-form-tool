@@ -748,13 +748,15 @@ body.fpainting .wf { display: none; }
   .home .hsec span { white-space: nowrap; font-size: 13px; }
 }
 
-/* 復原 / 重做:頂列 logo 旁邊,掣大啲 */
-.uredo { display: flex; align-items: center; gap: 2px; padding: 0 6px; margin-left: 2px; border-left: 1px solid var(--bar-line); border-right: 1px solid var(--bar-line); flex: none; }
-.uredo .btn.ib { width: 40px; height: 40px; border-radius: 8px; border-color: transparent; }
-.uredo .btn.ib .ic { width: 22px; height: 22px; }
-.uredo .btn.ib:not(:disabled) { background: color-mix(in srgb, var(--bar-ink) 10%, transparent); }
-.uredo .btn.ib:disabled { opacity: .4; }
-@media (max-width: 900px) { .uredo { border: 0; padding: 0; margin-left: auto; } .uredo .btn.ib { width: 44px; height: 44px; } }
+/* 復原 / 重做:頂列 logo 旁邊,大掣 + 步數徽章 */
+.uredo { display: flex; align-items: center; gap: 12px; padding: 0 14px 0 16px; margin-left: 2px; border-left: 1px solid var(--bar-line); flex: none; }
+.uredo .btn.ib { width: 48px; height: 48px; border-radius: 12px; border: 2px solid var(--bar-ink); background: var(--panel); color: var(--bar-ink); position: relative; }
+.uredo .btn.ib .ic { width: 26px; height: 26px; stroke-width: 2.2; }
+.uredo .btn.ib:disabled { opacity: 1; border-color: var(--bar-line); background: transparent; color: color-mix(in srgb, var(--bar-ink) 35%, transparent); cursor: default; }
+.uredo .btn.ib:not(:disabled):hover { background: var(--accent-soft); }
+.ubadge { position: absolute; right: -9px; top: -9px; min-width: 20px; height: 20px; box-sizing: border-box; padding: 0 5px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font: 700 12px/20px var(--font); text-align: center; pointer-events: none; }
+.ubadge:empty { display: none; }
+@media (max-width: 900px) { .uredo { border: 0; padding: 0 10px 0 0; margin-left: auto; gap: 10px; } .uredo .btn.ib { width: 44px; height: 44px; } }
 </style>
 
 <div id="app">
@@ -766,7 +768,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.71.1</span>
+    <span class="ver" id="ver" title="軟件版本">v3.72.0</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -1987,6 +1989,7 @@ async function printPdf() {
 $('#print').addEventListener('click', printPdf);
 { // 還原/重做:搬去頂列 logo 旁邊(每個畫面都喺度,唔使跨去分頁列最右)
   const u = $('#undo'), r = $('#redo'), g = document.createElement('div'); g.className = 'uredo'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', '復原與重做');
+  for (const b of [u, r]) { if (b === u) { const bd = document.createElement('span'); bd.className = 'ubadge'; bd.id = 'ubadge'; bd.setAttribute('aria-hidden', 'true'); b.append(bd); } }
   g.append(u, r); $('.appbar .brand').after(g);
 }
 
@@ -3633,7 +3636,7 @@ async function commitEdit() {
 /* ---- 復原 / 重做(文字、簽名、圖章、圖案) ---- */
 const H = { st: [[]], i: 0 }; let lastSig = '[]';
 const sigOf = (arr) => JSON.stringify(arr.map((m) => { const o = { ...m }; delete o.url; return o; }));
-function updHist() { const u = $('#undo'), rd = $('#redo'); if (u) u.disabled = !(H.i > 0 || undo); if (rd) rd.disabled = !(H.i < H.st.length - 1); }
+function updHist() { const u = $('#undo'), rd = $('#redo'); if (u) u.disabled = !(H.i > 0 || undo); if (rd) rd.disabled = !(H.i < H.st.length - 1); const n = H.i + (undo ? 1 : 0), bd = $('#ubadge'); if (bd) bd.textContent = n > 0 ? (n > 99 ? '99+' : String(n)) : ''; if (u) u.setAttribute('aria-label', '復原' + (n > 0 ? '(' + n + ' 步)' : '')); }
 function record() { if (editMk) return; const sg = sigOf(S.marks); if (sg === lastSig) return; lastSig = sg; H.st.length = H.i + 1; H.st.push(S.marks.map((m) => ({ ...m }))); if (H.st.length > 60) H.st.shift(); H.i = H.st.length - 1; S.lastAct = 'mark'; updHist(); }
 function histReset() { H.st = [S.marks.map((m) => ({ ...m }))]; H.i = 0; lastSig = sigOf(S.marks); updHist(); }
 function applySnap(snap) {
