@@ -703,7 +703,7 @@ body.fpainting .wf { display: none; }
   .cbempty { display: none; }
   .work > .ctxbar:has(> #cb-empty:not([hidden])):not(:has(> #ctabs:not([hidden]))) { display: none; }   /* 冇嘢可改就唔佔位 */
   .appbar { flex-wrap: nowrap; padding-block: 4px; gap: 8px; }
-  .brand b, .brand .ver { display: none; }
+  .brand b, .appbar .ver { display: none; }
   .dtabs { margin-left: 0; }
   .statusbar { flex-wrap: nowrap; gap: 6px; padding-block: 2px; }
   #stat { display: none; }
@@ -761,11 +761,12 @@ body.fpainting .wf { display: none; }
   <header class="appbar gut">
     <div class="brand">
       <span class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 64 64" role="img" aria-label="PDF編輯器"><rect width="64" height="64" rx="18" style="fill:var(--logo)"/><g transform="rotate(10 32 32)"><rect x="17" y="9" width="30" height="42" rx="6" fill="#fff" fill-opacity=".5"/></g><g transform="translate(-1 1) scale(.92)"><g transform="translate(-3 0)"><path d="M21 10H37Q40 10 42 12L53 23Q55 25 55 28V48Q55 54 49 54H21Q15 54 15 48V16Q15 10 21 10Z" fill="#fff"/><path d="M37 10V20Q37 23 40 23H55Z" fill="#000" fill-opacity=".16"/><text x="35" y="43.5" text-anchor="middle" font-family="'IBM Plex Sans','Noto Sans TC',sans-serif" font-weight="700" font-size="13.5" letter-spacing="-.3" style="fill:var(--logo)">PDF</text></g></g></svg></span>
-      <b>PDF編輯器</b><span class="ver" id="ver" title="軟件版本">v3.71.0</span>
+      <b>PDF編輯器</b>
     </div>
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
+    <span class="ver" id="ver" title="軟件版本">v3.71.1</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
