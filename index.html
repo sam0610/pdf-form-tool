@@ -757,6 +757,22 @@ body.fpainting .wf { display: none; }
 .ubadge { position: absolute; right: -9px; top: -9px; min-width: 20px; height: 20px; box-sizing: border-box; padding: 0 5px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font: 700 12px/20px var(--font); text-align: center; pointer-events: none; }
 .ubadge:empty { display: none; }
 @media (max-width: 900px) { .uredo { border: 0; padding: 0 10px 0 0; margin-left: auto; gap: 10px; } .uredo .btn.ib { width: 44px; height: 44px; } }
+
+.home .hdef { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--ink2, var(--ink)); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px 2px; }
+.home .hdef:hover { color: var(--accent); }
+.defdlg { border: 0; border-radius: 14px; padding: 0; width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); background: var(--panel); color: var(--ink); box-shadow: 0 18px 60px rgba(0,0,0,.35); }
+.defdlg::backdrop { background: rgba(20,28,43,.45); }
+.defdlg .dd { padding: 20px 22px 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; max-height: calc(100dvh - 48px); box-sizing: border-box; }
+.defdlg h3 { margin: 0; font-size: 18px; }
+.defdlg h4 { margin: 0 0 6px; font-size: 14px; }
+.defdlg ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; line-height: 1.55; }
+.defdlg .sec { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.defdlg .sec.me { border-color: var(--accent); }
+.defdlg .note { font-size: 12.5px; color: var(--ink2, var(--ink)); line-height: 1.55; }
+.defdlg code { font-family: var(--mono); font-size: 12px; background: var(--accent-soft); border-radius: 4px; padding: 1px 5px; word-break: break-all; }
+.defdlg .ft { display: flex; justify-content: flex-end; }
+.defdlg .ft button { height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 14px; cursor: pointer; }
+@media (max-width: 900px) { .home .hdef { display: none; } }
 </style>
 
 <div id="app">
@@ -768,7 +784,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.72.0</span>
+    <span class="ver" id="ver" title="軟件版本">v3.73.0</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -1987,6 +2003,17 @@ async function printPdf() {
   finally { setBusy(false); }
 }
 $('#print').addEventListener('click', printPdf);
+function showDefaultGuide() {   // 瀏覽器唔俾網頁自己改預設程式,只能夠教用戶喺系統入面設定
+  const ua = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '', isMac = /mac/i.test(ua), isWin = /win/i.test(ua);
+  const installed = window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: window-controls-overlay)').matches;
+  const d = document.createElement('dialog'); d.className = 'defdlg'; d.setAttribute('aria-label', '設為預設 PDF 程式');
+  const win = '<div class="sec' + (isWin ? ' me' : '') + '"><h4>Windows</h4><ol><li>喺任何一個 PDF 檔案上面撳<b>右鍵</b> → <b>開啟檔案</b> → <b>選擇其他應用程式</b></li><li>揀「<b>PDF編輯器</b>」</li><li>剔「<b>一律使用此應用程式開啟 .pdf 檔案</b>」→ <b>確定</b></li></ol></div>';
+  const mac = '<div class="sec' + (isMac ? ' me' : '') + '"><h4>Mac</h4><ol><li>喺 Finder 揀一個 PDF 檔案,撳 <b>⌘ + I</b>(取得資訊)</li><li>展開「<b>打開方式</b>」→ 揀「<b>PDF編輯器</b>」</li><li>撳「<b>全部更改…</b>」→ <b>繼續</b></li></ol><div class="note" style="margin-top:8px">如果之後仲有個別 PDF 用返舊程式開:嗰啲檔案曾經單獨揀過程式,「全部更改」唔會蓋過。對嗰個檔案重做一次上面步驟,或者喺終端機執行 <code>xattr -d com.apple.LaunchServices.OpenWith 檔案路徑</code> 清走個別設定。</div></div>';
+  d.innerHTML = '<div class="dd"><h3>設為預設 PDF 程式</h3>' + (installed ? '' : '<div class="note"><b>第一步:先安裝呢個 App。</b>用 Chrome 開呢個網頁,撳網址列右邊嘅安裝圖示(搵唔到就去選單 → 投放、儲存和分享 → 安裝「PDF編輯器」)。裝好之後用桌面 / 程式集嘅圖示開,再跟下面設定。</div>') + (isMac ? mac + win : win + mac) + '<div class="note">瀏覽器唔准網頁自己改預設程式,所以要喺系統設定一次。設好之後,雙擊 PDF 就會用 PDF編輯器開。</div><div class="ft"><button type="button">知道</button></div></div>';
+  d.querySelector('.ft button').addEventListener('click', () => d.close()); d.addEventListener('close', () => d.remove());
+  document.body.append(d); if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+}
+
 { // 還原/重做:搬去頂列 logo 旁邊(每個畫面都喺度,唔使跨去分頁列最右)
   const u = $('#undo'), r = $('#redo'), g = document.createElement('div'); g.className = 'uredo'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', '復原與重做');
   for (const b of [u, r]) { if (b === u) { const bd = document.createElement('span'); bd.className = 'ubadge'; bd.id = 'ubadge'; bd.setAttribute('aria-hidden', 'true'); b.append(bd); } }
@@ -2356,7 +2383,8 @@ function syncHome() {
   const ob = el('button', 'hopen'); ob.type = 'button'; ob.innerHTML = hsvg('folder', 20) + '<span>開啟檔案</span>'; ob.addEventListener('click', pickOpen); dz.append(ob);
   const row = el('div', 'hrow');
   const nb = el('button', 'hsec'); nb.type = 'button'; nb.dataset.tool = 'blank'; nb.innerHTML = hsvg('blank', 20) + '<span>新增空白頁</span>';
-  row.append(nb); left.append(dz, row);
+  const db = el('button', 'hdef'); db.type = 'button'; db.innerHTML = hsvg('doc', 16) + '<span>設為預設 PDF 程式</span>'; db.addEventListener('click', showDefaultGuide);
+  row.append(nb); left.append(dz, row, db);
   const right = el('div', 'hr2'), head = el('div', 'hhd'), view = REC.view || 'recent';
   if (!none) { right.classList.add('hasx'); const xb = el('button', 'hx'); xb.type = 'button'; xb.title = '返回文件(Esc)'; xb.setAttribute('aria-label', '返回文件'); xb.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'; xb.addEventListener('click', hideHome); right.append(xb); }
   const seg = el('div', 'hseg'); seg.setAttribute('role', 'group');
