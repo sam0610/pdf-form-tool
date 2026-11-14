@@ -604,6 +604,8 @@ body.fpainting .ov { cursor: copy; }
 .wf .wfi { background: rgba(234, 122, 12, .12); border: 1px solid rgba(234, 122, 12, .55); color: #00008b; padding: 0 .15em; font-family: inherit; outline: none; border-radius: 2px; line-height: 1.15; }
 .wf .wfi:focus { background: rgba(234, 122, 12, .22); box-shadow: 0 0 0 2px var(--accent, #2563eb); z-index: 2; }
 .wf textarea.wfi { resize: none; padding-top: .1em; }
+.wf input.wfi.comb { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace; }
+#pages.wfon .fld .pv.val { visibility: hidden; }
 .wf button.wfi { cursor: pointer; font: 600 11px/1 system-ui, sans-serif; color: #b45309; display: flex; align-items: center; justify-content: center; border-style: dashed; overflow: hidden; white-space: nowrap; }
 .wf button.wfi.signed { background: transparent; border-color: transparent; }
 .wf button.wfi.signed:hover { border-color: rgba(234, 122, 12, .55); }
@@ -784,7 +786,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.74.0</span>
+    <span class="ver" id="ver" title="軟件版本">v3.74.1</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -1264,9 +1266,16 @@ function widgetsOf(anns, vp) {
       else if ((m = /AFNumber_Format\((\d+),\s*(\d+),\s*0,\s*0,\s*"((?:[^"\\]|\\.)*)"/.exec(fm))) { fmt = 'number'; dec = Math.min(2, +m[1]); sep = m[2] === '0'; try { cur = JSON.parse('"' + m[3] + '"'); } catch (e) { cur = ''; } } }
     const fv = Array.isArray(a.fieldValue) ? a.fieldValue : a.fieldValue == null ? '' : String(a.fieldValue);
     out.push({ fmt, dfmt, dec, sep, cur, kind, name: a.fieldName, x0, y0, x1, y1, ro: !!a.readOnly, multi: !!a.multiLine, max: a.maxLen || 0, q: a.textAlignment || 0, fsPt: (a.defaultAppearanceData && a.defaultAppearanceData.fontSize) || 0,
-      combo: !!a.combo, multiSel: !!a.multiSelect, options: (a.options || []).map((o) => ({ v: o.exportValue, t: o.displayValue })), ev: a.exportValue, bv: a.buttonValue, fv, dirty: false, value: fv });
+      comb: a.comb && a.maxLen > 0 && !a.multiLine ? a.maxLen : 0, own: !!(a.hasOwnCanvas || a.noHTML), combo: !!a.combo, multiSel: !!a.multiSelect, options: (a.options || []).map((o) => ({ v: o.exportValue, t: o.displayValue })), ev: a.exportValue, bv: a.buttonValue, fv, dirty: false, value: fv });
   }
   return out;
+}
+/* 分格欄(comb):每格一個字,用等寬字 + 字距令字落喺格仔中間 */
+function combStyle(e, n, wPt, ptW, fsPt) {
+  const cell = wPt / n, fs = Math.min(fsPt, cell / 0.66), c = 'var(--pw) * ' + (cell / ptW).toFixed(6);
+  e.classList.add('comb'); e.maxLength = n; e.style.textAlign = 'left';
+  e.style.fontSize = 'calc(var(--pw) * ' + (fs / ptW).toFixed(5) + ')';
+  e.style.letterSpacing = 'calc(' + c + ' - 1ch)'; e.style.paddingLeft = 'calc((' + c + ' - 1ch) / 2 - 1px)'; e.style.paddingRight = '0';
 }
 function buildWidgets(pg, wrap) {
   const layer = el('div', 'wf'), grp = 'wf' + (++wfSeq) + '_', ptW = pg.vp.width / pg.vp.scale, ptH = pg.vp.height / pg.vp.scale, all = pg.wf;
@@ -1291,10 +1300,11 @@ function buildWidgets(pg, wrap) {
       for (const o of w.options) { const op = new Option(o.t || o.v, o.v); op.selected = cur.includes(o.v); e.append(op); }
       e.addEventListener('change', () => { w.value = e.multiple ? [...e.selectedOptions].map((o) => o.value) : e.value; w.dirty = true; });
     }
-    e.className = 'wfi'; w.el = e; if (w.ro) e.disabled = true;
+    e.className = 'wfi'; w.el = e; if (w.ro) e.disabled = true; if (w.own && w.kind === 'text') { e.style.color = 'transparent'; e.addEventListener('input', () => { e.style.color = ''; }); }
     e.style.left = (w.x0 / pg.W * 100) + '%'; e.style.top = (w.y0 / pg.H * 100) + '%'; e.style.width = ((w.x1 - w.x0) / pg.W * 100) + '%'; e.style.height = ((w.y1 - w.y0) / pg.H * 100) + '%';
     if (w.kind === 'text' || w.kind === 'choice') { const fs = w.fsPt > 0 ? w.fsPt : w.multi ? 10 : Math.max(6, Math.min(14, hPt * 0.62)); e.style.fontSize = 'calc(var(--pw) * ' + (fs / ptW).toFixed(5) + ')'; }
-    if (w.kind === 'text') { if (w.ls) e.style.letterSpacing = 'calc(var(--pw) * ' + (w.ls / ptW).toFixed(5) + ')'; if (w.multi && w.lh) e.style.lineHeight = String(w.lh); }
+    if (w.kind === 'text' && w.comb) combStyle(e, w.comb, (w.x1 - w.x0) / pg.vp.scale, ptW, w.fsPt > 0 ? w.fsPt : Math.max(6, Math.min(14, hPt * 0.62)));
+    else if (w.kind === 'text') { if (w.ls) e.style.letterSpacing = 'calc(var(--pw) * ' + (w.ls / ptW).toFixed(5) + ')'; if (w.multi && w.lh) e.style.lineHeight = String(w.lh); }
     e.title = w.name;
     if (w.kind === 'text' && !w.multi) e.addEventListener('keydown', (ev) => { if (ev.key !== 'Enter') return; ev.preventDefault(); const list = [...document.querySelectorAll('#pages .wfi:not(:disabled)')], i = list.indexOf(e); if (list[i + 1]) list[i + 1].focus(); });
     layer.append(e);
@@ -1310,6 +1320,7 @@ function importWidgets() {
       if (w.kind === 'radio') { keep.push(w); continue; }
       const kind = w.kind === 'text' ? (w.fmt || 'text') : w.kind === 'check' ? 'check' : 'dropdown';
       const f = { id: S.uid++, page: pi, kind, x0: w.x0, y0: w.y0, x1: w.x1, y1: w.y1, source: 'manual', imported: true, label: '', name: w.name, userName: true, fs: w.fsPt > 0 ? Math.round(w.fsPt) : 0, q: w.q || 0, multiline: kind === 'text' && w.multi };
+      if (kind === 'text' && w.comb) f.comb = w.comb;
       ensureDefaults(f);
       if (kind === 'date') f.dfmt = w.dfmt; if (kind === 'number') { f.dec = w.dec; f.sep = w.sep; f.cur = w.cur; }
       if (kind === 'dropdown') f.opts = w.options.map((o) => o.t || o.v);
@@ -1328,6 +1339,7 @@ const wfDirty = () => S.pages.some((p) => (p.wf || []).some((w) => w.dirty)); S.
 /* 返去「填寫」:由原有欄位轉出嚟嘅欄位,用輸入框顯示,可以直接填 */
 function fieldInputLayers() {
   const on = S.tab !== 'add' || document.body.classList.contains('fldlock');   // 編輯欄位閂咗(或唔喺制作表單)= 所有欄位可填
+  $('#pages').classList.toggle('wfon', on);   // 有輸入框時收埋預覽字,避免同一內容重疊顯示兩次
   for (const pg of S.pages) {
     const wrap = pg.ov && pg.ov.parentNode; if (!wrap) continue; const old = wrap.querySelector('.wf.wfx'); if (old) old.remove();
     const list = on ? pg.fields.slice() : []; if (!list.length) continue;
@@ -1345,6 +1357,7 @@ function fieldInputLayers() {
       e.className = 'wfi'; e.title = f.name || '';
       e.style.left = (f.x0 / pg.W * 100) + '%'; e.style.top = (f.y0 / pg.H * 100) + '%'; e.style.width = ((f.x1 - f.x0) / pg.W * 100) + '%'; e.style.height = ((f.y1 - f.y0) / pg.H * 100) + '%';
       if (f.kind !== 'check' && f.kind !== 'sign') { const fs = f.fs > 0 ? f.fs : f.multiline ? 10 : Math.max(6, Math.min(14, hPt * 0.62)); e.style.fontSize = 'calc(var(--pw) * ' + (fs / ptW).toFixed(5) + ')'; }
+      if (f.comb && f.kind === 'text' && !f.multiline) combStyle(e, f.comb, (f.x1 - f.x0) / pg.vp.scale, ptW, f.fs > 0 ? f.fs : Math.max(6, Math.min(14, hPt * 0.62)));
       if (f.kind === 'check') e.style.accentColor = '#d62828';
       layer.append(e);
     }
@@ -1752,6 +1765,32 @@ function deleteSel() {
 
 /* ------------------------------------------------------------------ 輸出可填寫 PDF */
 /* v3.68.3 多行／有字距／行距嘅文字欄:自己寫外觀串流,對齊 (Q)、行距 (FLLh)、字距 (FLSp) 同畫面一致;只支援 Helvetica 可編碼嘅字,其他(中文)會 throw,交俾閱讀器重繪 */
+/* 用畫布將文字畫成圖,做欄位外觀(中文等標準字型寫唔到嘅字);欄位值照樣保留 */
+async function imgAP(doc, tf, w, val) {
+  const wd = tf.acroField.getWidgets()[0], rc = wd.getRectangle(), W = rc.width, H = rc.height, ml = tf.isMultiline(), k = 4, pad = 2;
+  const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(W * k)); cv.height = Math.max(1, Math.round(H * k));
+  const c = cv.getContext('2d'); c.scale(k, k); c.fillStyle = '#000'; c.textBaseline = 'alphabetic';
+  let fs = w.fsPt > 0 ? w.fsPt : ml ? 10 : Math.max(6, Math.min(14, H * 0.62));
+  const font = () => { c.font = fs + 'px "Noto Sans TC", "PingFang HK", "PingFang TC", "Microsoft JhengHei", "Heiti TC", Arial, sans-serif'; };
+  font();
+  if (w.comb) {
+    const cell = W / w.comb; fs = Math.min(fs, cell / 0.66 * 1.1); font(); c.textAlign = 'center';
+    [...val].slice(0, w.comb).forEach((ch, i) => c.fillText(ch, cell * (i + 0.5), H / 2 + fs * 0.35));
+  } else {
+    let lines = [];
+    for (const para of val.split(/\r?\n/)) {
+      if (!ml) { lines.push(para); continue; }
+      let cur = ''; for (const ch of [...para]) { if (cur && c.measureText(cur + ch).width > W - 2 * pad) { lines.push(cur); cur = ch; } else cur += ch; } lines.push(cur);
+    }
+    if (!ml) { lines = lines.slice(0, 1); while (fs > 5 && c.measureText(lines[0]).width > W - 2 * pad) { fs -= 0.5; font(); } }
+    const lh = (w.lh || 1.15) * fs, first = ml ? pad + fs * 0.9 : H / 2 + fs * 0.35;
+    lines.forEach((ln, i) => { const lw = c.measureText(ln).width, x = w.q === 1 ? (W - lw) / 2 : w.q === 2 ? W - pad - lw : pad; c.fillText(ln, x, first + i * lh); });
+  }
+  const png = await new Promise((ok) => cv.toBlob(async (b) => ok(new Uint8Array(await b.arrayBuffer())), 'image/png'));
+  const img = await doc.embedPng(png), ctx = doc.context;
+  const ref = ctx.register(ctx.stream('q ' + W.toFixed(2) + ' 0 0 ' + H.toFixed(2) + ' 0 0 cm /Im0 Do Q', { Type: 'XObject', Subtype: 'Form', BBox: [0, 0, W, H], Resources: { XObject: { Im0: img.ref } } }));
+  wd.setNormalAppearance(ref);
+}
 function spacedAP(doc, tf, w, val, cf) {
   const rc = tf.acroField.getWidgets()[0].getRectangle(), W = rc.width, H = rc.height, ml = tf.isMultiline();
   const fs = w.fsPt > 0 ? w.fsPt : ml ? 10 : Math.max(6, Math.min(14, H * 0.62)), ls = w.ls || 0, lhp = (w.lh || 1.15) * fs, pad = 2, avail = W - 2 * pad;
@@ -1807,6 +1846,7 @@ async function buildPdf() {
         fld.addToPage(page, { x, y, width: w, height: h, borderWidth: 0, textColor: rgb(0, 0, 0.55) });
         fld.setAlignment([PDFLib.TextAlignment.Left, PDFLib.TextAlignment.Center, PDFLib.TextAlignment.Right][f.q || 0]);
         if (f.kind === 'text' && f.multiline) fld.enableMultiline();
+        if (f.kind === 'text' && f.comb && !f.multiline) { try { fld.setMaxLength(f.comb); fld.enableCombing(); } catch (e) { console.warn('分格欄設定失敗', e.message); } }
         if (f.kind === 'date') fld.acroField.dict.set(PDFName.of('AA'), ctx.obj({ F: jsAct('AFDate_FormatEx(' + JSON.stringify(f.dfmt) + ');'), K: jsAct('AFDate_KeystrokeEx(' + JSON.stringify(f.dfmt) + ');') }));
         if (f.kind === 'number') { const a = f.dec + ', ' + (f.sep ? 0 : 1) + ', 0, 0, ' + JSON.stringify(f.cur || '') + ', true';
           fld.acroField.dict.set(PDFName.of('AA'), ctx.obj({ F: jsAct('AFNumber_Format(' + a + ');'), K: jsAct('AFNumber_Keystroke(' + a + ');') })); }
@@ -1857,17 +1897,19 @@ async function buildPdf() {
         const fld = form.getFieldMaybe(w.name); if (!fld) continue;
         if (w.kind === 'text' && fld instanceof PDFLib.PDFTextField) {
           fld.setText(String(w.value || '')); changed = true;
-          try { helv = helv || await pdf.embedFont(PDFLib.StandardFonts.Helvetica); if (w.multi || w.ls || w.lh) { spacedAP(pdf, fld, w, String(w.value || ''), helv, pg.vp.scale); handledAP.add(w.name); } else fld.updateAppearances(helv); } catch (e) { /* 中文等:交俾閱讀器重繪 */ }
-        } else if (w.kind === 'check' && fld instanceof PDFLib.PDFCheckBox) { w.value === 'Off' ? fld.uncheck() : fld.check(); changed = true; }
+          try { helv = helv || await pdf.embedFont(PDFLib.StandardFonts.Helvetica); if (w.multi || w.ls || w.lh) spacedAP(pdf, fld, w, String(w.value || ''), helv, pg.vp.scale); else fld.updateAppearances(helv); handledAP.add(w.name); }
+          catch (e) { try { await imgAP(pdf, fld, w, String(w.value || '')); handledAP.add(w.name); } catch (e2) { console.warn('欄位外觀失敗', w.name, e2.message); } }   // 中文等 Helvetica 寫唔到:改用圖像外觀
+        } else if (w.kind === 'check' && fld instanceof PDFLib.PDFCheckBox) { w.value === 'Off' ? fld.uncheck() : fld.check(); changed = true; handledAP.add(w.name); }
         else if (w.kind === 'radio' && fld instanceof PDFLib.PDFRadioGroup) {
           const opts = fld.getOptions(); let o = w.bv;
           if (!opts.includes(o)) { const sib = S.pages.flatMap((q) => q.wf || []).filter((x) => x.kind === 'radio' && x.name === w.name); o = opts[sib.indexOf(w)]; }
-          if (o != null) { fld.select(o); changed = true; }
+          if (o != null) { fld.select(o); changed = true; handledAP.add(w.name); }
         }
         else if (w.kind === 'choice' && (fld instanceof PDFLib.PDFDropdown || fld instanceof PDFLib.PDFOptionList)) { const v = Array.isArray(w.value) ? w.value : [w.value]; v.length && v[0] !== '' ? fld.select(v.length > 1 ? v : v[0]) : fld.clear(); changed = true; }
       } catch (e) { console.warn('套用欄位失敗', w.name, e.message); }
     }
-    const needNA = S.pages.some((pg) => (pg.wf || []).some((w) => w.dirty && !(w.kind === 'text' && handledAP.has(w.name))));
+    /* 只有自己整唔到外觀嘅欄位先要閱讀器重繪(NeedAppearances 會令其他原有欄位喺部分閱讀器/列印時消失) */
+    const needNA = S.pages.some((pg) => (pg.wf || []).some((w) => w.dirty && !handledAP.has(w.name)));
     if (changed && needNA) form.acroForm.dict.set(PDFName.of('NeedAppearances'), PDFBool.True);
   }
   if (S.hooks.drawMarks) await S.hooks.drawMarks(pdf);

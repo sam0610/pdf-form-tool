@@ -1,7 +1,7 @@
 /* PDF編輯器 service worker:同源檔案「先用快取、背景更新」,離線都開到 */
-const CACHE = 'pdfform-v3.74.0';
+const CACHE = 'pdfform-v3.74.1';
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/file-48.png', 'icons/file-64.png', 'icons/file-128.png', 'icons/file-256.png', 'icons/file-512.png',
-  'lib/pdf.min.js', 'lib/pdf.worker.min.js', 'lib/pdf-lib.min.js', 'lib/jszip.min.js', 'lib/xlsx.full.min.js'];
+  'lib/pdf.min.js', 'lib/pdf.worker.min.js', 'lib/pdf-lib.min.js', 'lib/jszip.min.js', 'lib/xlsx.full.min.js', 'lib/qpdf.js', 'lib/qpdf.wasm'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
