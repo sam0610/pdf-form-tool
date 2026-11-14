@@ -786,7 +786,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.74.2</span>
+    <span class="ver" id="ver" title="軟件版本">v3.74.3</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -1373,6 +1373,7 @@ async function decryptPdf(bytes, pw) {
     await new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'lib/qpdf.js'; sc.onload = ok; sc.onerror = () => no(new Error('載入解密模組失敗')); document.head.appendChild(sc); });
     _qpdf = window.Module;
   }
+  if (!bytes.length) return bytes;
   let err = '';
   const q = await _qpdf({ locateFile: () => 'lib/qpdf.wasm', noInitialRun: true, print() {}, printErr(t) { err += t + '\n'; } });
   q.FS.writeFile('/in.pdf', bytes);
@@ -1386,14 +1387,55 @@ function hasEncrypt(b) {
   outer: for (let i = b.indexOf(47); i !== -1 && i <= b.length - 8; i = b.indexOf(47, i + 1)) { for (let j = 1; j < 8; j++) if (b[i + j] !== k[j]) continue outer; return true; }
   return false;
 }
+/* 修復「半加密」檔:舊版(v3.74.0 之前)儲存加密 PDF 時,新內容冇加密但仍保留加密標記,閱讀器會話要密碼。
+   做法:用 qpdf 由加密設定計出密鑰,再逐個物件試解(AES-256:全檔同一條密鑰),解唔到嘅就係新內容,保持原樣 */
+async function qpdfKey(encDict, idArr) {
+  if (!_qpdf) await decryptPdf(new Uint8Array(0)).catch(() => {});
+  const mini = '%PDF-1.7\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [] /Count 0 >>\nendobj\n3 0 obj\n' + encDict + '\nendobj\n';
+  const xo = mini.length, xref = 'xref\n0 4\n0000000000 65535 f \n' + [mini.indexOf('1 0 obj'), mini.indexOf('2 0 obj'), mini.indexOf('3 0 obj')].map((o) => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+  const txt = mini + xref + 'trailer\n<< /Size 4 /Root 1 0 R /Encrypt 3 0 R' + (idArr ? ' /ID ' + idArr : '') + ' >>\nstartxref\n' + xo + '\n%%EOF\n';
+  let out = '';
+  const q = await _qpdf({ locateFile: () => 'lib/qpdf.wasm', noInitialRun: true, print(t) { out += t + '\n'; }, printErr(t) { out += t + '\n'; } });
+  q.FS.writeFile('/k.pdf', new Uint8Array([...txt].map((c) => c.charCodeAt(0) & 255)));
+  try { q.callMain(['--json=2', '--json-key=encrypt', '--show-encryption-key', '/k.pdf', '/k.json']); } catch (e) { /* ignore */ }
+  let j = null; try { j = JSON.parse(new TextDecoder().decode(q.FS.readFile('/k.json'))).encrypt.parameters; } catch (e) { return null; }
+  return j && j.key ? { key: j.key, aes256: j.V === 5 && j.streammethod === 'AESv3' && j.stringmethod === 'AESv3' } : null;
+}
+async function repairHalfEncrypted(bytes) {
+  const { PDFDocument, PDFName, PDFRawStream, PDFString, PDFHexString, PDFDict, PDFArray, PDFRef } = PDFLib;
+  const d = await PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false, throwOnInvalidObject: false }), ctx = d.context;
+  const er = ctx.trailerInfo.Encrypt, enc = er instanceof PDFRef ? ctx.lookup(er) : er; if (!(enc instanceof PDFDict)) return null;
+  const info = await qpdfKey(enc.toString(), ctx.trailerInfo.ID ? ctx.trailerInfo.ID.toString() : '');
+  if (!info || !info.aes256) return null;   // 只處理 AES-256(全檔同一條密鑰)
+  const kb = new Uint8Array(info.key.match(/../g).map((h) => parseInt(h, 16)));
+  const ck = await crypto.subtle.importKey('raw', kb, 'AES-CBC', false, ['decrypt']);
+  const dec = async (b) => { if (!b || b.length < 32 || b.length % 16) return null; try { return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CBC', iv: b.slice(0, 16) }, ck, b.slice(16))); } catch (e) { return null; } };
+  const inflOk = async (b) => { try { const st = new Blob([b]).stream().pipeThrough(new DecompressionStream('deflate')); const rd = st.getReader(); await rd.read(); rd.cancel().catch(() => {}); return true; } catch (e) { return false; } };
+  const fixStr = async (o) => { if (o instanceof PDFString || o instanceof PDFHexString) { const p = await dec(o.asBytes()); if (p) return PDFHexString.of([...p].map((x) => x.toString(16).padStart(2, '0')).join('')); } return null; };
+  const walk = async (o) => {
+    if (o instanceof PDFDict) { for (const [k, v] of o.entries()) { const r = await fixStr(v); if (r) o.set(k, r); else await walk(v); } }
+    else if (o instanceof PDFArray) { for (let i = 0; i < o.size(); i++) { const v = o.get(i), r = await fixStr(v); if (r) o.set(i, r); else await walk(v); } }
+  };
+  let n = 0;
+  for (const [ref, obj] of ctx.enumerateIndirectObjects()) {
+    if (er instanceof PDFRef && ref === er) continue;
+    if (obj instanceof PDFRawStream) {
+      await walk(obj.dict); const p = await dec(obj.contents);
+      if (p) { const f = String(obj.dict.get(PDFName.of('Filter')) || ''); if (!/FlateDecode/.test(f) || await inflOk(p)) { ctx.assign(ref, PDFRawStream.of(obj.dict, p)); n++; } }
+    } else { const r = await fixStr(obj); if (r) ctx.assign(ref, r); else await walk(obj); }
+  }
+  if (!n) return null;
+  delete ctx.trailerInfo.Encrypt; if (er instanceof PDFRef) ctx.delete(er);
+  return await d.save({ useObjectStreams: false });
+}
 async function plainPdf(bytes, name) {
   if (!hasEncrypt(bytes)) return bytes;
-  try { return await decryptPdf(bytes); }
+  try { const out = await decryptPdf(bytes); toast('已解除加密限制(只喺本機處理)'); return out; }
   catch (e) {
-    if (!e.needPw) throw e;
+    if (!e.needPw) { const fixed = await repairHalfEncrypted(bytes).catch((x) => { console.warn('修復失敗', x); return null; }); if (fixed) { toast('呢個檔案係舊版儲存時損壞咗,已自動修復(建議另存一次)', 5000); return fixed; } throw e; }
     for (let n = 0; n < 3; n++) {
       const pw = window.prompt((n ? '密碼唔啱,請再試。\n' : '') + '「' + (name || 'PDF') + '」有開啟密碼,請輸入:'); if (pw == null || pw === '') break;
-      try { return await decryptPdf(bytes, pw); } catch (e2) { if (!e2.needPw) throw e2; }
+      try { const out = await decryptPdf(bytes, pw); toast('密碼正確,已解除加密(只喺本機處理)'); return out; } catch (e2) { if (!e2.needPw) throw e2; }
     }
     const e3 = new Error('呢個 PDF 有開啟密碼,未能解除加密'); e3.needPw = true; throw e3;
   }
@@ -1401,7 +1443,7 @@ async function plainPdf(bytes, name) {
 async function loadPdf(bytes, name, isSample) {
   setBusy(true, '載入 PDF…'); S.lastLoadOk = false;
   try {
-    try { const b0 = bytes; setBusy(true, '檢查加密…'); bytes = await plainPdf(bytes, name); if (bytes !== b0) toast('已解除加密限制(只喺本機處理)'); setBusy(true, '載入 PDF…'); } catch (e) { console.warn('解密失敗', e); if (e && e.needPw) { toast('載入失敗:' + e.message); return; } }
+    try { const b0 = bytes; setBusy(true, '檢查加密…'); bytes = await plainPdf(bytes, name); setBusy(true, '載入 PDF…'); } catch (e) { console.warn('解密失敗', e); if (e && e.needPw) { toast('載入失敗:' + e.message); return; } }
     const doc = await pdfjsLib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
     const n = Math.min(doc.numPages, MAX_PAGES);
     const host = $('#pages'); host.textContent = '';
@@ -2898,7 +2940,7 @@ async function saveFile(filename, data) {   // 內嵌檢視用 claude 下載;獨
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = filename; document.body.append(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); toast('已下載 ' + filename); return true;
 }
-Object.assign(S.api, { askFileName, pageCells, setSTab, renumber, renderList, renderEditor, updateStatus, renderAllOverlays, loadPdf, plainPdf, buildPdf, toast, setBusy, tick, el, saveFile, select, renderOverlay, allFields });
+Object.assign(S.api, { askFileName, pageCells, setSTab, renumber, renderList, renderEditor, updateStatus, renderAllOverlays, loadPdf, plainPdf, repairHalfEncrypted, qpdfKey, buildPdf, toast, setBusy, tick, el, saveFile, select, renderOverlay, allFields });
 window.__app = S;
 
 /* ------------------------------------------------------------------ 啟動:自動載入範例,畫面一開就有內容 */
