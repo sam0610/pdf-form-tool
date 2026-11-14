@@ -784,7 +784,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.73.3</span>
+    <span class="ver" id="ver" title="軟件版本">v3.74.0</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -1353,9 +1353,23 @@ function fieldInputLayers() {
 }
 { let lk = document.body.classList.contains('fldlock'); new MutationObserver(() => { const n = document.body.classList.contains('fldlock'); if (n !== lk) { lk = n; fieldInputLayers(); } }).observe(document.body, { attributes: true, attributeFilter: ['class'] }); }
 /* ------------------------------------------------------------------ 載入 PDF */
+/* 加密 PDF:pdf-lib 解唔到,用 qpdf(wasm)喺本機解除「限制修改」(冇開檔密碼先得),全程唔上載 */
+let _qpdf = null;
+async function decryptPdf(bytes) {
+  if (!_qpdf) {
+    await new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'lib/qpdf.js'; sc.onload = ok; sc.onerror = () => no(new Error('載入解密模組失敗')); document.head.appendChild(sc); });
+    _qpdf = window.Module;
+  }
+  const q = await _qpdf({ locateFile: () => 'lib/qpdf.wasm', noInitialRun: true, print() {}, printErr() {} });
+  q.FS.writeFile('/in.pdf', bytes);
+  const rc = q.callMain(['--decrypt', '/in.pdf', '/out.pdf']);
+  if (rc !== 0 && rc !== 3) throw new Error('解密失敗(代碼 ' + rc + ')');
+  return q.FS.readFile('/out.pdf');
+}
 async function loadPdf(bytes, name, isSample) {
   setBusy(true, '載入 PDF…'); S.lastLoadOk = false;
   try {
+    try { const isE = /\/Encrypt\b/.test(new TextDecoder('latin1').decode(bytes.subarray(Math.max(0, bytes.length - 8192)))); if (isE) { setBusy(true, '解除加密限制…'); await tick(); bytes = await decryptPdf(bytes); toast('已解除加密限制(只喺本機處理)'); } } catch (e) { console.warn('解密失敗', e); }
     const doc = await pdfjsLib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
     const n = Math.min(doc.numPages, MAX_PAGES);
     const host = $('#pages'); host.textContent = '';
@@ -1363,7 +1377,7 @@ async function loadPdf(bytes, name, isSample) {
     let flx = {}; try { const pd0 = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false }); for (const fl of pd0.getForm().getFields()) { if (!(fl instanceof PDFLib.PDFTextField)) continue; const g = (k) => { const v = fl.acroField.dict.lookup(PDFLib.PDFName.of(k)); return v && v.asNumber ? v.asNumber() : 0; }; const ls = g('FLSp'), lh = g('FLLh'); if (ls || lh) flx[fl.getName()] = { ls, lh }; } } catch (e) { /* 冇自訂字距／行距 */ }
     S.pdoc = doc; S.pages = []; S.sel = null; S.msel = []; S.bytes = bytes; S.name = name; S.sample = !!isSample;
     if (S.hooks.reset) S.hooks.reset();
-    if (S.enc) toast('⚠ 呢個 PDF 有加密(限制修改):可以填寫同預覽,但可能無法儲存/輸出');
+    if (S.enc) toast('⚠ 呢個 PDF 有加密,解除失敗(可能要開檔密碼):可以預覽,但可能無法儲存/列印');
     for (let i = 1; i <= n; i++) {
       setBusy(true, '偵測欄位…第 ' + i + ' / ' + n + ' 頁'); await tick();
       const page = await doc.getPage(i);
