@@ -784,7 +784,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.73.2</span>
+    <span class="ver" id="ver" title="軟件版本">v3.73.3</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -1359,9 +1359,11 @@ async function loadPdf(bytes, name, isSample) {
     const doc = await pdfjsLib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
     const n = Math.min(doc.numPages, MAX_PAGES);
     const host = $('#pages'); host.textContent = '';
+    S.enc = false; try { S.enc = !!(await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false, throwOnInvalidObject: false })).isEncrypted; } catch (e) { S.enc = /Encrypt/.test(new TextDecoder('latin1').decode(bytes.subarray(Math.max(0, bytes.length - 4096)))); }
     let flx = {}; try { const pd0 = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false }); for (const fl of pd0.getForm().getFields()) { if (!(fl instanceof PDFLib.PDFTextField)) continue; const g = (k) => { const v = fl.acroField.dict.lookup(PDFLib.PDFName.of(k)); return v && v.asNumber ? v.asNumber() : 0; }; const ls = g('FLSp'), lh = g('FLLh'); if (ls || lh) flx[fl.getName()] = { ls, lh }; } } catch (e) { /* 冇自訂字距／行距 */ }
     S.pdoc = doc; S.pages = []; S.sel = null; S.msel = []; S.bytes = bytes; S.name = name; S.sample = !!isSample;
     if (S.hooks.reset) S.hooks.reset();
+    if (S.enc) toast('⚠ 呢個 PDF 有加密(限制修改):可以填寫同預覽,但可能無法儲存/輸出');
     for (let i = 1; i <= n; i++) {
       setBusy(true, '偵測欄位…第 ' + i + ' / ' + n + ' 頁'); await tick();
       const page = await doc.getPage(i);
@@ -2075,7 +2077,7 @@ async function savePdf(asNew) {   // asNew = 另存:一定彈出「另存新檔�
   } catch (e) {
     if (e && e.name === 'AbortError') toast('已取消儲存');
     else if (e && (e.name === 'SecurityError' || e.name === 'NotAllowedError')) { S.fh = null; toast('呢個環境唔可以直接覆蓋檔案,改為下載'); setBusy(false); exportPdf(); return; }
-    else { console.error(e); toast('儲存失敗:' + (e && e.message ? e.message : e)); }
+    else { console.error(e); toast(S.enc ? '儲存失敗:呢個 PDF 有加密(限制修改),本程式暫時未能處理加密檔案。請先用 Chrome 列印→另存為 PDF,或用 qpdf --decrypt 解除限制後再開' : '儲存失敗:' + (e && e.message ? e.message : e)); }
   } finally { setBusy(false); }
 }
 $('#save').addEventListener('click', () => savePdf());
@@ -2810,7 +2812,7 @@ async function saveFile(filename, data) {   // 內嵌檢視用 claude 下載;獨
   const dl = await (window.claude && window.claude.use ? window.claude.use('downloads') : null);
   if (dl) {
     try { const r = await dl.save({ filename, data }); toast(r.status === 'saved' ? '已儲存 ' + filename : '已送出'); return true; }
-    catch (e) { if (e && e.code === 'declined') toast('已取消儲存'); else { console.error(e); toast('儲存失敗:' + (e && e.message ? e.message : e)); } return false; }
+    catch (e) { if (e && e.code === 'declined') toast('已取消儲存'); else { console.error(e); toast(S.enc ? '儲存失敗:呢個 PDF 有加密(限制修改),請先解除加密再開(Chrome 列印→另存為 PDF)' : '儲存失敗:' + (e && e.message ? e.message : e)); } return false; }
   }
   if (window.top !== window.self) { toast('呢個檢視不支援下載,請喺 claude.ai 內開啟本頁,或用 GitHub 版'); return false; }   // 內嵌沙盒入面瀏覽器下載會被擋
   const ext = ((filename.match(/\.([a-z0-9]+)$/i) || [])[1] || '').toLowerCase(), mime = MIMES[ext] || 'application/octet-stream';
