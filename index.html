@@ -786,7 +786,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.75.0</span>
+    <span class="ver" id="ver" title="軟件版本">v3.76.0</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -1009,9 +1009,9 @@ body.fpainting .wf { display: none; }
 (() => {
 'use strict';
 const SC = 200 / 72;           // 偵測用解像度:200 dpi
-/* 頁數上限:手機/平板記憶體有限,維持 40 頁;電腦放寬到 200 頁(每頁約佔 20MB 記憶體,超過 80 頁會自動降低偵測解像度) */
+/* 頁數上限:頁面改為「捲到先載入」(見 ensureFull),記憶體只同畫面附近嘅頁數有關;上限主要係控制開檔時間同縮圖記憶體(每頁約 1MB) */
 const IS_MOBILE = matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 900px)').matches;
-const MAX_PAGES = IS_MOBILE ? 40 : 200;
+const MAX_PAGES = IS_MOBILE ? 100 : 500;
 const $ = (s) => document.querySelector(s);
 const S = { hooks: {}, marks: [], selMark: null, api: {}, name: '', bytes: null, pages: [], sample: false, mode: 'select', zoom: 1, sel: null, uid: 1, busy: false, show: true,
             opts: { cells: true, ul: true, cb: true, minUl: 50 }, newKind: 'text' };
@@ -1442,6 +1442,64 @@ async function plainPdf(bytes, name) {
     const e3 = new Error('呢個 PDF 有開啟密碼,未能解除加密'); e3.needPw = true; throw e3;
   }
 }
+/* ================================================================== 捲到先載入
+   每頁嘅全解像度位圖(A4 約 15MB)只喺畫面附近先保留;離開咗就換返低解像度預覽。
+   pg.canvas 永遠有內容(預覽或全解像度),所以縮圖等用途唔使理會頁面有冇載入。 */
+const LAZY = { want: new Set(), io: null, busy: false, again: false, tick: 0, t: 0, max: IS_MOBILE ? 6 : 24 };
+const LO_W = 320;   // 低解像度預覽闊度(同縮圖一樣)
+function loDraw(pg, src) {   // 將 pg.canvas 換成低解像度預覽(由 src 縮細)
+  const w = LO_W, h = Math.max(1, Math.round(LO_W * pg.H / pg.W)), t = document.createElement('canvas'); t.width = w; t.height = h;
+  const tc = t.getContext('2d'); tc.imageSmoothingQuality = 'high'; tc.drawImage(src, 0, 0, w, h);
+  const cv = pg.canvas; cv.width = w; cv.height = h; cv.getContext('2d', { willReadFrequently: true }).drawImage(t, 0, 0); t.width = t.height = 0;
+}
+function evictPage(pg) { if (!pg.full) return; loDraw(pg, pg.canvas); pg.full = false; pg._gray = null; }
+function pageGray(pg) {   // 偵測用灰階:要全解像度位圖;未載入就回傳 null(呼叫方要先 await ensureFull)
+  if (!pg._gray && pg.full) {
+    const id = pg.canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, pg.W, pg.H).data, g = new Uint8Array(pg.W * pg.H);
+    for (let p = 0, q = 0; p < g.length; p++, q += 4) g[p] = (id[q] * 299 + id[q + 1] * 587 + id[q + 2] * 114) / 1000;
+    pg._gray = g;
+  }
+  return pg._gray || null;
+}
+function ensureFull(i, pin) {
+  const pg = S.pages[i]; if (!pg) return Promise.resolve();
+  pg.used = ++LAZY.tick; if (pin) { pg.pin = Date.now() + 3000; lazyPump(); }
+  if (pg.full) return Promise.resolve(); if (pg.fullP) return pg.fullP;
+  const doc = S.pdoc;
+  pg.fullP = (async () => {
+    const t = document.createElement('canvas'); t.width = pg.W; t.height = pg.H;
+    const c = t.getContext('2d', { willReadFrequently: true }); c.fillStyle = '#fff'; c.fillRect(0, 0, pg.W, pg.H);
+    await pg.pjs.render({ canvasContext: c, viewport: pg.vp, annotationMode: pg.am }).promise;
+    if (S.pdoc === doc && S.pages[i] === pg) { const cv = pg.canvas; cv.width = pg.W; cv.height = pg.H; cv.getContext('2d', { willReadFrequently: true }).drawImage(t, 0, 0); pg.full = true; pg.used = ++LAZY.tick; }
+    t.width = t.height = 0;
+  })().catch((e) => { console.warn('頁面載入失敗', i + 1, e); }).finally(() => { pg.fullP = null; });
+  return pg.fullP;
+}
+function lazyPump() { clearTimeout(LAZY.t); LAZY.t = setTimeout(lazyRun, 60); }
+async function lazyRun() {
+  if (LAZY.busy) { LAZY.again = true; return; }
+  LAZY.busy = true;
+  try {
+    for (let guard = 0; guard < 2000; guard++) {
+      const wraps = $('#pages').children, sr = $('#stage').getBoundingClientRect(), mid = (sr.top + sr.bottom) / 2, now = Date.now();
+      const dist = (i) => { const r = wraps[i].getBoundingClientRect(); return r.height ? Math.max(0, r.top - mid, mid - r.bottom) : Infinity; };
+      const want = [...LAZY.want].filter((i) => S.pages[i] && wraps[i]).map((i) => [dist(i), i]).filter((x) => x[0] < Infinity).sort((a, b) => a[0] - b[0]).slice(0, LAZY.max).map((x) => x[1]);
+      const keep = new Set(want);
+      const spare = S.pages.map((p, i) => (p.full && !keep.has(i) && !(p.pin > now) ? i : -1)).filter((i) => i >= 0).sort((a, b) => (S.pages[a].used || 0) - (S.pages[b].used || 0));   // 可以釋放嘅頁,最耐冇用嘅排先
+      let nFull = S.pages.reduce((n, p) => n + (p.full ? 1 : 0), 0);
+      const next = want.find((i) => !S.pages[i].full);
+      while (spare.length && nFull + (next == null ? 0 : 1) > LAZY.max) { evictPage(S.pages[spare.shift()]); nFull--; }
+      if (next == null) break;
+      await ensureFull(next);
+      if (!S.pages[next] || !S.pages[next].full) break;   // 載入失敗或文件已換:停,等下次觸發
+    }
+  } finally { LAZY.busy = false; if (LAZY.again) { LAZY.again = false; lazyPump(); } }
+}
+function lazyObserve() {
+  if (LAZY.io) LAZY.io.disconnect(); LAZY.want.clear();
+  LAZY.io = new IntersectionObserver((es) => { for (const e of es) { const i = e.target._pi; if (i == null) continue; if (e.isIntersecting) LAZY.want.add(i); else LAZY.want.delete(i); } lazyPump(); }, { root: $('#stage'), rootMargin: '150%' });
+  for (const w of $('#pages').children) LAZY.io.observe(w);
+}
 async function loadPdf(bytes, name, isSample) {
   setBusy(true, '載入 PDF…'); S.lastLoadOk = false;
   try {
@@ -1457,36 +1515,38 @@ async function loadPdf(bytes, name, isSample) {
     for (let i = 1; i <= n; i++) {
       setBusy(true, '偵測欄位…第 ' + i + ' / ' + n + ' 頁'); await tick();
       const page = await doc.getPage(i);
-      let scale = n > 80 ? 150 / 72 : SC; const v0 = page.getViewport({ scale: 1 });
+      let scale = SC; const v0 = page.getViewport({ scale: 1 });
       const maxPx = 14e6; if (v0.width * v0.height * scale * scale > maxPx) scale = Math.sqrt(maxPx / (v0.width * v0.height));
       const vp = page.getViewport({ scale });
-      const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
-      const ctx = cv.getContext('2d', { willReadFrequently: true });
-      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+      const cv = document.createElement('canvas'), W = Math.round(vp.width), H = Math.round(vp.height);
+      cv.style.aspectRatio = W + ' / ' + H;   // 版面大細由比例決定,唔靠位圖尺寸(位圖會隨載入/釋放而改變)
       let wf = [];
       try { wf = widgetsOf(await page.getAnnotations({ intent: 'display' }), vp); for (const w of wf) { const x = flx[w.name]; if (x) { w.ls = x.ls; w.lh = x.lh; } } } catch (e) { /* 冇註解 */ }
       const am = wf.length ? 2 : 1;
-      await page.render({ canvasContext: ctx, viewport: vp, annotationMode: am }).promise;
-      const id = ctx.getImageData(0, 0, cv.width, cv.height).data, W = cv.width, H = cv.height, gray = new Uint8Array(W * H);
-      for (let p = 0, q = 0; p < gray.length; p++, q += 4) gray[p] = (id[q] * 299 + id[q + 1] * 587 + id[q + 2] * 114) / 1000;
+      /* 低解像度預覽(320px 闊):用嚟做縮圖,同埋頁面未載入時嘅佔位畫面。先畫 2 倍再縮細,線條先夠清楚 */
+      const pv = document.createElement('canvas'); pv.width = LO_W * 2; pv.height = Math.max(1, Math.round(LO_W * 2 * H / W));
+      { const tc = pv.getContext('2d'); tc.fillStyle = '#fff'; tc.fillRect(0, 0, pv.width, pv.height);
+        await page.render({ canvasContext: tc, viewport: page.getViewport({ scale: scale * pv.width / W }), annotationMode: am }).promise; }
       let text = [];
       try {
         const tc = await page.getTextContent();
         text = tc.items.filter((it) => it.str && it.str.trim() && !it.transform[1] && !it.transform[2])
           .map((it) => ({ s: it.str, x: it.transform[4], y: it.transform[5], w: it.width, h: it.height || Math.abs(it.transform[3]) }));
       } catch (e) { /* 冇文字層 */ }
-      const pg = { vp, canvas: cv, gray, W, H, u: scale / SC, text, fields: [], ov: null, map: new Map(), pjs: page, am, wf };
-      S.pages.push(pg);
+      const pg = { vp, canvas: cv, full: false, W, H, u: scale / SC, text, fields: [], ov: null, map: new Map(), pjs: page, am, wf };
+      Object.defineProperty(pg, 'gray', { configurable: true, get() { return pageGray(pg); } });
+      loDraw(pg, pv); pv.width = pv.height = 0; S.pages.push(pg);
+      if (i <= 2) await ensureFull(i - 1);   // 頭兩頁即刻載入,開檔第一眼就清晰
       const wrap = el('div', 'pg'); wrap.style.setProperty('--ar', H / W); wrap.append(cv);
       const ov = el('div', 'ov'); pg.ov = ov; wrap.append(ov);
       wrap.append(el('div', 'pgno', '第 ' + i + ' 頁'));
       if (wf.length) buildWidgets(pg, wrap);
-      host.append(wrap); bindOverlay(ov, S.pages.length - 1);
+      wrap._pi = S.pages.length - 1; host.append(wrap); bindOverlay(ov, S.pages.length - 1);
       if (S.hooks.page) S.hooks.page(pg, wrap, S.pages.length - 1);
       renderOverlay(S.pages.length - 1);
     }
-    if (doc.numPages > n) toast('呢份有 ' + doc.numPages + ' 頁,' + (IS_MOBILE ? '手機版' : '') + '只可以編輯頭 ' + n + ' 頁;其餘頁面睇唔到,但儲存同列印時會原樣保留' + (IS_MOBILE ? '。要編輯全部請用電腦開' : ''), 7000);
-    $('#stage').scrollTop = 0;
+    if (doc.numPages > n) toast('呢份有 ' + doc.numPages + ' 頁,' + (IS_MOBILE ? '手機版' : '') + '只可以編輯頭 ' + n + ' 頁;其餘頁面睇唔到,但儲存同列印時會原樣保留' + (IS_MOBILE ? '。電腦版可以開到 500 頁' : ''), 7000);
+    $('#stage').scrollTop = 0; lazyObserve();
     S.lastLoadOk = true; if (!$('#pn-add').hidden) importWidgets();
     updateStatus(); renderList(); renderEditor(); if (S.hooks.showHints) S.hooks.showHints();
   } catch (e) {
@@ -1498,7 +1558,9 @@ function pageCells(pg, force) {   // 填寫用:只供貼合,唔會變成欄位;�
   if (!pg.scan && !force) return [];
   const key = JSON.stringify(S.opts);
   if (!pg.cells || pg.cellsKey !== key) {
-    let cs = []; try { cs = detect(pg.gray, pg.W, pg.H, S.opts, pg.u); } catch (e) { console.warn('偵測失敗', e); }
+    const g = pg.gray;
+    if (!g) { const i = S.pages.indexOf(pg); ensureFull(i, true).then(() => { if (pg.full && S.pages[i] === pg) { try { pageCells(pg, true); renderOverlay(i); } catch (e) { /* 忽略 */ } } }); return pg.cells || []; }   // 頁面未載入:先載入,今次回傳舊結果
+    let cs = []; try { cs = detect(g, pg.W, pg.H, S.opts, pg.u); } catch (e) { console.warn('偵測失敗', e); }
     cs.sort((a, b) => { const t = Math.min(a.y1 - a.y0, b.y1 - b.y0) * 0.5; return Math.abs(a.y0 - b.y0) < t ? a.x0 - b.x0 : a.y0 - b.y0; });
     if (pg.dismissed && pg.dismissed.length) cs = cs.filter((c) => !pg.dismissed.some((d) => { const w = Math.min(c.x1, d.x1) - Math.max(c.x0, d.x0), h = Math.min(c.y1, d.y1) - Math.max(c.y0, d.y0); return w > 0 && h > 0 && w * h > 0.5 * Math.min((c.x1 - c.x0) * (c.y1 - c.y0), (d.x1 - d.x0) * (d.y1 - d.y0)); }));
     cs.forEach((c, i) => { c.idx = i; }); pg.cells = cs; pg.cellsKey = key;
@@ -1511,7 +1573,7 @@ async function detectNow(scope) {
   setBusy(true, '偵測欄位…'); await tick();
   try {
     S.sel = null; let n = 0;
-    for (const i of idx) { const pg = S.pages[i]; const before = pg.fields.length; runDetect(pg, i); n += pg.fields.filter((f) => f.source !== 'manual').length; void before; renderOverlay(i); await tick(); }
+    for (const i of idx) { const pg = S.pages[i]; const before = pg.fields.length; await ensureFull(i, true); if (!pg.full) throw new Error('第 ' + (i + 1) + ' 頁載入失敗'); runDetect(pg, i); pg._gray = null; n += pg.fields.filter((f) => f.source !== 'manual').length; void before; renderOverlay(i); await tick(); }
     renderList(); renderEditor(); updateStatus();
     toast(n ? '已偵測 ' + n + ' 個欄位' + (scope === 'cur' ? '(第 ' + (idx[0] + 1) + ' 頁)' : '') + ',可以喺「欄位」清單檢查同修改' : '呢度偵測唔到空白格或底線,請用「畫欄位」手動加入', 4200);
   } catch (e) { console.error(e); toast('偵測失敗:' + (e && e.message ? e.message : e)); }
@@ -1982,6 +2044,7 @@ async function buildPdf() {
 const TABS = []; let tabSeq = 1; S.curTab = null;
 function snapDoc() {
   const st = $('#stage');
+  for (const pg of S.pages) evictPage(pg);   // 分頁切走:釋放全解像度位圖,返嚟先再載入
   return { pages: S.pages, marks: S.marks, bytes: S.bytes, name: S.name, fh: S.fh, sample: S.sample, zoom: S.zoom, vrot: S.vrot, sel: S.sel, msel: S.msel, cur: S.cur, pdoc: S.pdoc,
     scroll: [st.scrollLeft, st.scrollTop], slots: [...$('#pages').children], ths: [...$('#thumbs').children].filter((x) => !x.classList.contains('railtb')), ext: S.hooks.tabSave ? S.hooks.tabSave() : null };
 }
@@ -1994,6 +2057,7 @@ function blankState() {
   if (S.fpaint) stopFPaint();
   if (S.paint) { S.paint = null; document.body.classList.remove('painting'); }
   S.pages = []; S.marks = []; S.sel = null; S.msel = []; S.bytes = null; S.name = ''; S.fh = null; S.sample = false; S.pdoc = null; S.cur = 0; S.selMark = null;
+  if (LAZY.io) LAZY.io.disconnect(); LAZY.want.clear();
   $('#pages').textContent = '';
   if (S.hooks.reset) S.hooks.reset();
   if (S.hooks.tabLoad) S.hooks.tabLoad(null);
@@ -2003,6 +2067,7 @@ function showDoc(d) {
   blankState();
   Object.assign(S, { pages: d.pages, marks: d.marks, bytes: d.bytes, name: d.name, fh: d.fh, sample: d.sample, pdoc: d.pdoc, sel: d.sel, msel: d.msel || [], cur: d.cur || 0 });
   const host = $('#pages'); for (const x of d.slots) host.append(x);
+  lazyObserve();
   const add = $('#thumbs .th-add'); for (const x of d.ths) if (!x.classList.contains('th-add')) $('#thumbs').insertBefore(x, add);
   S.zoom = d.zoom; host.style.setProperty('--zoom', d.zoom); updZoomUi(); applyVrot(d.vrot || 0);
   if (S.hooks.tabLoad) S.hooks.tabLoad(d.ext);
@@ -2942,7 +3007,7 @@ async function saveFile(filename, data) {   // 內嵌檢視用 claude 下載;獨
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = filename; document.body.append(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); toast('已下載 ' + filename); return true;
 }
-Object.assign(S.api, { askFileName, pageCells, setSTab, renumber, renderList, renderEditor, updateStatus, renderAllOverlays, loadPdf, plainPdf, repairHalfEncrypted, qpdfKey, buildPdf, toast, setBusy, tick, el, saveFile, select, renderOverlay, allFields });
+Object.assign(S.api, { askFileName, pageCells, setSTab, renumber, renderList, renderEditor, updateStatus, renderAllOverlays, loadPdf, plainPdf, repairHalfEncrypted, qpdfKey, ensureFull: (i) => ensureFull(i, true), buildPdf, toast, setBusy, tick, el, saveFile, select, renderOverlay, allFields });
 window.__app = S;
 
 /* ------------------------------------------------------------------ 啟動:自動載入範例,畫面一開就有內容 */
