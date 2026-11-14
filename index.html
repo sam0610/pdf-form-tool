@@ -786,7 +786,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.74.1</span>
+    <span class="ver" id="ver" title="軟件版本">v3.74.2</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -1368,21 +1368,40 @@ function fieldInputLayers() {
 /* ------------------------------------------------------------------ 載入 PDF */
 /* 加密 PDF:pdf-lib 解唔到,用 qpdf(wasm)喺本機解除「限制修改」(冇開檔密碼先得),全程唔上載 */
 let _qpdf = null;
-async function decryptPdf(bytes) {
+async function decryptPdf(bytes, pw) {
   if (!_qpdf) {
     await new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'lib/qpdf.js'; sc.onload = ok; sc.onerror = () => no(new Error('載入解密模組失敗')); document.head.appendChild(sc); });
     _qpdf = window.Module;
   }
-  const q = await _qpdf({ locateFile: () => 'lib/qpdf.wasm', noInitialRun: true, print() {}, printErr() {} });
+  let err = '';
+  const q = await _qpdf({ locateFile: () => 'lib/qpdf.wasm', noInitialRun: true, print() {}, printErr(t) { err += t + '\n'; } });
   q.FS.writeFile('/in.pdf', bytes);
-  const rc = q.callMain(['--decrypt', '/in.pdf', '/out.pdf']);
-  if (rc !== 0 && rc !== 3) throw new Error('解密失敗(代碼 ' + rc + ')');
+  let rc; try { rc = q.callMain((pw ? ['--password=' + pw] : []).concat(['--decrypt', '/in.pdf', '/out.pdf'])); } catch (e) { rc = 2; err += e && e.message || ''; }
+  if (rc !== 0 && rc !== 3) { const e = new Error(/password/i.test(err) ? '密碼錯誤' : '解密失敗(代碼 ' + rc + ')'); e.needPw = /password/i.test(err); throw e; }
   return q.FS.readFile('/out.pdf');
+}
+/* 所有讀入 PDF 嘅入口都行呢度:有加密就先喺本機解除(要開檔密碼就問用戶),回傳可以直接處理嘅 bytes */
+function hasEncrypt(b) {
+  const k = [47, 69, 110, 99, 114, 121, 112, 116];   // "/Encrypt"(線性化 PDF 會喺檔頭,所以全檔搵)
+  outer: for (let i = b.indexOf(47); i !== -1 && i <= b.length - 8; i = b.indexOf(47, i + 1)) { for (let j = 1; j < 8; j++) if (b[i + j] !== k[j]) continue outer; return true; }
+  return false;
+}
+async function plainPdf(bytes, name) {
+  if (!hasEncrypt(bytes)) return bytes;
+  try { return await decryptPdf(bytes); }
+  catch (e) {
+    if (!e.needPw) throw e;
+    for (let n = 0; n < 3; n++) {
+      const pw = window.prompt((n ? '密碼唔啱,請再試。\n' : '') + '「' + (name || 'PDF') + '」有開啟密碼,請輸入:'); if (pw == null || pw === '') break;
+      try { return await decryptPdf(bytes, pw); } catch (e2) { if (!e2.needPw) throw e2; }
+    }
+    const e3 = new Error('呢個 PDF 有開啟密碼,未能解除加密'); e3.needPw = true; throw e3;
+  }
 }
 async function loadPdf(bytes, name, isSample) {
   setBusy(true, '載入 PDF…'); S.lastLoadOk = false;
   try {
-    try { const isE = /\/Encrypt\b/.test(new TextDecoder('latin1').decode(bytes.subarray(Math.max(0, bytes.length - 8192)))); if (isE) { setBusy(true, '解除加密限制…'); await tick(); bytes = await decryptPdf(bytes); toast('已解除加密限制(只喺本機處理)'); } } catch (e) { console.warn('解密失敗', e); }
+    try { const b0 = bytes; setBusy(true, '檢查加密…'); bytes = await plainPdf(bytes, name); if (bytes !== b0) toast('已解除加密限制(只喺本機處理)'); setBusy(true, '載入 PDF…'); } catch (e) { console.warn('解密失敗', e); if (e && e.needPw) { toast('載入失敗:' + e.message); return; } }
     const doc = await pdfjsLib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
     const n = Math.min(doc.numPages, MAX_PAGES);
     const host = $('#pages'); host.textContent = '';
@@ -2057,7 +2076,7 @@ async function printPdf() {
       setBusy(false); window.print();
       setTimeout(() => { if (!fired) { done(); toast('呢個內嵌環境唔准列印(瀏覽器沙盒限制)。請用「另存」後用 PDF 閱讀器列印,或者開獨立頁面 / 安裝版', 6000); } }, 900);
     }
-  } catch (e) { console.error(e); toast('列印失敗:' + (e && e.message ? e.message : e)); }
+  } catch (e) { console.error(e); toast(/password/i.test(e && e.message || '') ? '列印失敗:文件入面有加密 PDF 未解除。請重新開啟(或重新加入)嗰個檔案再試' : '列印失敗:' + (e && e.message ? e.message : e)); }
   finally { setBusy(false); }
 }
 $('#print').addEventListener('click', printPdf);
@@ -2879,7 +2898,7 @@ async function saveFile(filename, data) {   // 內嵌檢視用 claude 下載;獨
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = filename; document.body.append(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); toast('已下載 ' + filename); return true;
 }
-Object.assign(S.api, { askFileName, pageCells, setSTab, renumber, renderList, renderEditor, updateStatus, renderAllOverlays, loadPdf, buildPdf, toast, setBusy, tick, el, saveFile, select, renderOverlay, allFields });
+Object.assign(S.api, { askFileName, pageCells, setSTab, renumber, renderList, renderEditor, updateStatus, renderAllOverlays, loadPdf, plainPdf, buildPdf, toast, setBusy, tick, el, saveFile, select, renderOverlay, allFields });
 window.__app = S;
 
 /* ------------------------------------------------------------------ 啟動:自動載入範例,畫面一開就有內容 */
@@ -3027,7 +3046,7 @@ function toolMerge() {
   }
   pick.addEventListener('change', async () => {
     for (const f of pick.files) {
-      try { const bytes = new Uint8Array(await readFile(f)); const d = await PDFDocument.load(bytes, { ignoreEncryption: true }); files.push({ name: f.name, bytes, pages: d.getPageCount() }); }
+      try { const bytes = await A.plainPdf(new Uint8Array(await readFile(f)), f.name); const d = await PDFDocument.load(bytes, { ignoreEncryption: true }); files.push({ name: f.name, bytes, pages: d.getPageCount() }); }
       catch (e) { toast('讀取失敗:' + f.name); }
     }
     pick.value = ''; render();
@@ -4799,7 +4818,7 @@ const upPdf = el('input'); upPdf.type = 'file'; upPdf.accept = 'application/pdf,
 let upAt = null;   // 上載 PDF 嘅插入位置(null = 放最後)
 async function appendFiles(files, at) {
   const add = []; let bad = 0;
-  for (const f of files) { try { const bytes = new Uint8Array(await readFile(f)); const d = await PDFDocument.load(bytes, { ignoreEncryption: true }); add.push({ name: f.name, bytes, n: d.getPageCount() }); } catch (e) { bad++; } }
+  for (const f of files) { try { const bytes = await A.plainPdf(new Uint8Array(await readFile(f)), f.name); const d = await PDFDocument.load(bytes, { ignoreEncryption: true }); add.push({ name: f.name, bytes, n: d.getPageCount() }); } catch (e) { bad++; } }
   if (bad) toast(bad + ' 個檔案讀取失敗(可能唔係有效 PDF)');
   if (!add.length) return;
   const st = snapState(), nNew = add.reduce((t, a) => t + a.n, 0); let pos = 0;
