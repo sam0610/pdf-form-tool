@@ -786,7 +786,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.74.3</span>
+    <span class="ver" id="ver" title="軟件版本">v3.75.0</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -1009,7 +1009,9 @@ body.fpainting .wf { display: none; }
 (() => {
 'use strict';
 const SC = 200 / 72;           // 偵測用解像度:200 dpi
-const MAX_PAGES = 40;
+/* 頁數上限:手機/平板記憶體有限,維持 40 頁;電腦放寬到 200 頁(每頁約佔 20MB 記憶體,超過 80 頁會自動降低偵測解像度) */
+const IS_MOBILE = matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 900px)').matches;
+const MAX_PAGES = IS_MOBILE ? 40 : 200;
 const $ = (s) => document.querySelector(s);
 const S = { hooks: {}, marks: [], selMark: null, api: {}, name: '', bytes: null, pages: [], sample: false, mode: 'select', zoom: 1, sel: null, uid: 1, busy: false, show: true,
             opts: { cells: true, ul: true, cb: true, minUl: 50 }, newKind: 'text' };
@@ -1455,7 +1457,7 @@ async function loadPdf(bytes, name, isSample) {
     for (let i = 1; i <= n; i++) {
       setBusy(true, '偵測欄位…第 ' + i + ' / ' + n + ' 頁'); await tick();
       const page = await doc.getPage(i);
-      let scale = SC; const v0 = page.getViewport({ scale: 1 });
+      let scale = n > 80 ? 150 / 72 : SC; const v0 = page.getViewport({ scale: 1 });
       const maxPx = 14e6; if (v0.width * v0.height * scale * scale > maxPx) scale = Math.sqrt(maxPx / (v0.width * v0.height));
       const vp = page.getViewport({ scale });
       const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
@@ -1483,7 +1485,7 @@ async function loadPdf(bytes, name, isSample) {
       if (S.hooks.page) S.hooks.page(pg, wrap, S.pages.length - 1);
       renderOverlay(S.pages.length - 1);
     }
-    if (doc.numPages > n) toast('只處理頭 ' + MAX_PAGES + ' 頁');
+    if (doc.numPages > n) toast('呢份有 ' + doc.numPages + ' 頁,' + (IS_MOBILE ? '手機版' : '') + '只可以編輯頭 ' + n + ' 頁;其餘頁面睇唔到,但儲存同列印時會原樣保留' + (IS_MOBILE ? '。要編輯全部請用電腦開' : ''), 7000);
     $('#stage').scrollTop = 0;
     S.lastLoadOk = true; if (!$('#pn-add').hidden) importWidgets();
     updateStatus(); renderList(); renderEditor(); if (S.hooks.showHints) S.hooks.showHints();
