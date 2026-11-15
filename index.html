@@ -786,7 +786,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.77.0</span>
+    <span class="ver" id="ver" title="軟件版本">v3.77.1</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -2178,7 +2178,7 @@ async function printPdf() {
         await pgx.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; if (n === 1) sz = Math.round(vp0.width) + 'pt ' + Math.round(vp0.height) + 'pt';
         root.append(cv);
       }
-      const st = document.createElement('style'); st.id = 'printcss'; st.textContent = '#printroot{display:none}@media print{@page{size:' + sz + ';margin:0}body>*:not(#printroot){display:none!important}html,body{background:#fff!important;height:auto!important;overflow:visible!important}#printroot{display:block}#printroot canvas{display:block;width:100%;height:auto;page-break-after:always;break-after:page}#printroot canvas:last-child{page-break-after:auto;break-after:auto}}';
+      const st = document.createElement('style'); st.id = 'printcss'; st.textContent = '#printroot{display:none}@media print{@page{size:' + sz + ';margin:0}body>*:not(#printroot){display:none!important}html,body{background:#fff!important;height:auto!important;overflow:visible!important}#printroot{display:block}#printroot canvas{display:block;width:auto;height:auto;max-width:100%;max-height:100vh;margin:0 auto;page-break-after:always;break-after:page}#printroot canvas:last-child{page-break-after:auto;break-after:auto}}';
       document.head.append(st); document.body.append(root);
       let fired = false; const on = () => { fired = true; }, done = () => { window.removeEventListener('beforeprint', on); window.removeEventListener('afterprint', done); root.remove(); st.remove(); };
       window.addEventListener('beforeprint', on); window.addEventListener('afterprint', done);
