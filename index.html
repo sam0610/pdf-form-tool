@@ -786,7 +786,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.76.0</span>
+    <span class="ver" id="ver" title="軟件版本">v3.77.0</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -2152,7 +2152,7 @@ async function exportPdf() {
   const n = allFields().length, nm = S.marks.length;
   setBusy(true, '產生 PDF…'); await tick();
   try {
-    const bytes = await buildPdf();
+    const bytes = await checkedBuild();
     const dl = await (window.claude && window.claude.use ? window.claude.use('downloads') : null);
     const base = (S.name || 'form').replace(/\.pdf$/i, '').replace(/_(edited|fillable)$/, '');
     setBusy(false); const fname = await askFileName(base + (n ? '_fillable' : '_edited'));
@@ -2161,7 +2161,7 @@ async function exportPdf() {
     const r = await dl.save({ filename: fname, data: bytes });
     toast(r.status === 'saved' ? '已儲存 ' + fname + '(' + n + ' 個欄位' + (nm ? '、' + nm + ' 項內容' : '') + ')' : '已送出');
   } catch (e) {
-    if (e && e.code === 'declined') toast('已取消儲存'); else { console.error(e); toast('輸出失敗:' + (e && e.message ? e.message : e)); }
+    if (e && e.verify) { console.error(e); toast('未輸出。' + e.message, 12000); } else if (e && e.code === 'declined') toast('已取消儲存'); else { console.error(e); toast('輸出失敗:' + (e && e.message ? e.message : e)); }
   } finally { setBusy(false); }
 }
 
@@ -2246,20 +2246,48 @@ async function printAsImagePdf() {
 }
 $('#print-img').addEventListener('click', printAsImagePdf);
 window.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'p' && S.pages.length) { e.preventDefault(); printPdf(); } }, true);
+/* 輸出檔驗證:寫入前用另一個讀取器(pdf.js + pdf-lib)喺記憶體重開輸出檔,核對頁數同欄位。唔啱就唔寫入,保護原檔。 */
+async function verifyOutput(bytes) {
+  const bad = [];
+  if (!bytes || !bytes.length) return { ok: false, problems: ['輸出檔係空嘅'] };
+  let doc = null;
+  try {
+    try { doc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise; }
+    catch (e) { return { ok: false, problems: ['輸出檔開唔到(' + (e && e.message ? e.message : e) + ')'] }; }
+    if (doc.numPages !== S.pages.length) bad.push('頁數唔符:應有 ' + S.pages.length + ' 頁,輸出得 ' + doc.numPages + ' 頁');
+    try { const pl = await PDFLib.PDFDocument.load(bytes); if (pl.getPageCount() !== S.pages.length) bad.push('pdf-lib 讀到嘅頁數唔符'); }
+    catch (e) { bad.push('輸出檔結構有問題(' + (e && e.message ? e.message : e) + ')'); }
+    const mine = allFields(), fo = (await doc.getFieldObjects().catch(() => null)) || {};
+    const outAll = Object.values(fo).flat(), outCount = Object.keys(fo).length;
+    if (mine.length && outCount < mine.length) bad.push('欄位數目唔符:自建欄位 ' + mine.length + ' 個,輸出得 ' + outCount + ' 個');
+    const vals = new Set(outAll.map((o) => String(o.value == null ? '' : o.value)));
+    const miss = mine.filter((f) => f.kind !== 'check' && f.kind !== 'sign' && f.value && !vals.has(String(f.value)));
+    if (miss.length) bad.push(miss.length + ' 個欄位嘅預設內容喺輸出檔搵唔到(例如「' + String(miss[0].name || miss[0].label || '') + '」)');
+  } finally { if (doc) { try { doc.destroy(); } catch (e) { /* 忽略 */ } } }
+  return { ok: !bad.length, problems: bad };
+}
+async function checkedBuild() {   // 砌輸出檔 + 驗證;唔通過就拋錯,唔俾寫入
+  const bytes = await buildPdf();
+  setBusy(true, '檢查輸出檔…'); await tick();
+  const v = await verifyOutput(bytes); S.lastVerify = v;
+  if (!v.ok) { const e = new Error('輸出檔驗證失敗:' + v.problems.join(';')); e.verify = true; throw e; }
+  return bytes;
+}
 async function savePdf(asNew) {   // asNew = 另存:一定彈出「另存新檔」
   if (!S.pages.length || S.busy) return;
   if (!S.fh && !window.showSaveFilePicker) { exportPdf(); return; }   // 唔支援 → 下載
   const name = asNew ? (S.name || 'form').replace(/\.pdf$/i, '').replace(/_(edited|fillable)$/, '') + (allFields().length ? '_fillable.pdf' : '_edited.pdf') : (S.name || 'form.pdf').replace(/(\.pdf)?$/i, '.pdf');
   setBusy(true, '儲存中…'); await tick();
   try {
-    const bytes = await buildPdf();
+    const bytes = await checkedBuild();
     let h = asNew ? null : S.fh;
     if (h && h.requestPermission && (await h.requestPermission({ mode: 'readwrite' })) !== 'granted') h = null;
     if (!h) { h = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }] }); S.fh = h; }
     const w = await h.createWritable(); await w.write(bytes); await w.close();
     S.name = h.name || S.name; toast('已儲存 ' + (h.name || name)); recAdd(h, h.name || name);
   } catch (e) {
-    if (e && e.name === 'AbortError') toast('已取消儲存');
+    if (e && e.verify) { console.error(e); toast('未儲存,原檔冇改動。' + e.message, 12000); }
+    else if (e && e.name === 'AbortError') toast('已取消儲存');
     else if (e && (e.name === 'SecurityError' || e.name === 'NotAllowedError')) { S.fh = null; toast('呢個環境唔可以直接覆蓋檔案,改為下載'); setBusy(false); exportPdf(); return; }
     else { console.error(e); toast(S.enc ? '儲存失敗:呢個 PDF 有加密(限制修改),本程式暫時未能處理加密檔案。請先用 Chrome 列印→另存為 PDF,或用 qpdf --decrypt 解除限制後再開' : '儲存失敗:' + (e && e.message ? e.message : e)); }
   } finally { setBusy(false); }
@@ -3007,7 +3035,7 @@ async function saveFile(filename, data) {   // 內嵌檢視用 claude 下載;獨
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = filename; document.body.append(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); toast('已下載 ' + filename); return true;
 }
-Object.assign(S.api, { askFileName, pageCells, setSTab, renumber, renderList, renderEditor, updateStatus, renderAllOverlays, loadPdf, plainPdf, repairHalfEncrypted, qpdfKey, ensureFull: (i) => ensureFull(i, true), buildPdf, toast, setBusy, tick, el, saveFile, select, renderOverlay, allFields });
+Object.assign(S.api, { verifyOutput, askFileName, pageCells, setSTab, renumber, renderList, renderEditor, updateStatus, renderAllOverlays, loadPdf, plainPdf, repairHalfEncrypted, qpdfKey, ensureFull: (i) => ensureFull(i, true), buildPdf, toast, setBusy, tick, el, saveFile, select, renderOverlay, allFields });
 window.__app = S;
 
 /* ------------------------------------------------------------------ 啟動:自動載入範例,畫面一開就有內容 */
