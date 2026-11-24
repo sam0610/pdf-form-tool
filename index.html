@@ -786,7 +786,7 @@ body.fpainting .wf { display: none; }
     <div class="dtabs" id="dtabs" role="tablist" aria-label="已開啟檔案"></div>
     <div class="docname" id="docname"><b id="dn-name"></b><small id="dn-meta"></small></div>
     <span class="sp"></span>
-    <span class="ver" id="ver" title="軟件版本">v3.77.1</span>
+    <span class="ver" id="ver" title="軟件版本">v3.77.2</span>
     <input id="file" type="file" accept="application/pdf,.pdf" multiple hidden>
   </header>
 
@@ -2283,7 +2283,16 @@ async function savePdf(asNew) {   // asNew = 另存:一定彈出「另存新檔�
     let h = asNew ? null : S.fh;
     if (h && h.requestPermission && (await h.requestPermission({ mode: 'readwrite' })) !== 'granted') h = null;
     if (!h) { h = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }] }); S.fh = h; }
-    const w = await h.createWritable(); await w.write(bytes); await w.close();
+    let w;
+    try { w = await h.createWritable(); }
+    catch (e2) {   // 原檔唯讀(例如由電郵附件、共用資料夾、唯讀屬性開):改為揀位置另存,唔使重新砌檔
+      if (!(e2 && (e2.name === 'NoModificationAllowedError' || /read-only|唯讀|只讀/i.test(e2.message || '')))) throw e2;
+      toast('原檔係唯讀,唔可以覆蓋,請揀位置另存一份', 6000);
+      const base = (S.name || 'form').replace(/\.pdf$/i, '');
+      h = await window.showSaveFilePicker({ suggestedName: base.replace(/_(edited|fillable)$/, '') + '_edited.pdf', types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }] });
+      S.fh = h; w = await h.createWritable();
+    }
+    await w.write(bytes); await w.close();
     S.name = h.name || S.name; toast('已儲存 ' + (h.name || name)); recAdd(h, h.name || name);
   } catch (e) {
     if (e && e.verify) { console.error(e); toast('未儲存,原檔冇改動。' + e.message, 12000); }
